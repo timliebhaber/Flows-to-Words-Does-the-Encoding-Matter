@@ -1,0 +1,9 @@
+\section*{Limitations}\label{sec:limitations}
+Each model was run with only \res{seeds.distilbert} seeds, and the small BERT results vary noticeably between seeds
+on some datasets. Single cells, especially cross-dataset ones, should therefore be read with care. Learning rates were
+tuned on one pilot dataset (one for NetFlow, and Edge-IIoTset on itself), not per dataset. Our small BERT is smaller
+than the size the paper states. E1 and E2 are truncated for DistilBERT, although the side runs suggest this costs
+little. We kept the host fingerprint in NF-UNSW-NB15 and used one sample per dataset. The training times mix
+different power states of a laptop GPU and are only a rough guide. DistilBERT's second and third seeds ran on a
+faster cluster GPU, so the times we compare come from the first seed of every model. Finally, the privacy attack on Edge-IIoTset has no
+public-dictionary step, so its numbers are a lower bound.

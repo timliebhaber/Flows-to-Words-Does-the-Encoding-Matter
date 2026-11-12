@@ -1,0 +1,222 @@
+# Live demo for the Nov 4 station session (Streamlit app). Loaded by src/config.py:load_demo_config.
+#   Train the demo models once (~6 min GPU): uv run ftw demo   (= python -m src.demo.train --config configs/demo.yaml)
+#   Start the app:  uv run streamlit run src/demo/app.py -- --config configs/demo.yaml
+#
+# The demo models are COPIES for showing predictions live: same data, encoders, tokenizers, tuned settings and
+# seed as the benchmark, but they never write results/results.csv or run_details (the official numbers stay the
+# 3-seed results in the report). Model settings are read from the configs below, nothing is repeated here.
+
+xgb_config: configs/xgb.yaml               # XGBoost params + its tuning file (best grid point per dataset x task)
+bert_config: configs/bert_small.yaml       # small BERT model/training settings, tokenizers, tuned LRs
+privacy_config: configs/privacy.yaml       # attack levels, low-cardinality domains, brute-force range
+analysis_config: configs/analysis.yaml     # display names of datasets, models and encodings
+
+dataset: nf_ton_iot      # Decided 2026-11-02: text models come close to XGBoost here, and E1 hashes crack well
+task: multiclass         # attack names are what visitors want to see
+seed: 0                  # one seed is enough for a demo (the first benchmark seed)
+xgb: true                # train + show XGBoost
+encodings: [e1_ppfle, e3_kv]   # small BERT demo models: the paper's hashes vs readable text (~4 + ~2 min)
+
+model_dir: data/demo_models   # one folder per model: <dir>/<model>_<encoding>/ (gitignored, regenerable)
+meta_file: meta.json          # per model: class names, settings, val/test macro-F1 of this demo copy
+xgb_model_file: model.json    # XGBoost booster (small BERT uses Hugging Face save_pretrained files)
+
+app:
+  title: "Can language models read network flows?"
+  device: auto                # auto = cuda if available, else cpu (the demo models are small)
+  show_encodings: [e1_ppfle, e2_ppfle_bins, e3_kv, e4_sentence]
+  attack_encoding: e1_ppfle   # the encoding attacked live in step 4 ("Hash attack")
+  top_k: 3                    # class probabilities shown per classifier (step 3)
+  decimals: 3                 # probabilities and macro-F1
+  percent_decimals: 1         # shares shown as percentages
+  xgb_device: cpu             # XGBoost predicts one row at a time: CPU avoids a GPU copy per click
+  random_seed: 7              # first flow shown; every "Draw a random flow" click draws the next one
+  encode_step_s: 0.06         # step 2: pause after each feature while the flow is encoded live (47 features ≈ 3 s)
+  piece_colors: ["#dbeafe", "#fde68a", "#bbf7d0", "#fbcfe8", "#e9d5ff", "#fed7aa"]   # BPE token backgrounds
+  # Step 1 "All 47 features": one line per feature (NetFlow v3 / nProbe field meanings). The loader checks
+  # that every feature in the data config has exactly one entry. "client" = the side that started the flow.
+  column_info:
+    L4_DST_PORT: "Port the client connected to; tells the service (80 = web, 443 = HTTPS, 53 = DNS, 22 = SSH)"
+    PROTOCOL: "Transport protocol number (6 = TCP, 17 = UDP, 1 = ICMP)"
+    L7_PROTO: "Application protocol guessed by deep packet inspection (nDPI code, e.g. 7 = HTTP, 5 = DNS, 91 = TLS; 0 = unknown)"
+    IN_BYTES: "Bytes sent client → server"
+    IN_PKTS: "Packets sent client → server"
+    OUT_BYTES: "Bytes sent server → client"
+    OUT_PKTS: "Packets sent server → client"
+    TCP_FLAGS: "All TCP flags seen in the flow (SYN, ACK, FIN, RST, … combined into one number)"
+    CLIENT_TCP_FLAGS: "TCP flags in the client's packets"
+    SERVER_TCP_FLAGS: "TCP flags in the server's packets"
+    FLOW_DURATION_MILLISECONDS: "How long the flow lasted (milliseconds)"
+    DURATION_IN: "How long the client → server direction lasted (milliseconds)"
+    DURATION_OUT: "How long the server → client direction lasted (milliseconds)"
+    MIN_TTL: "Lowest IP time-to-live seen (hints at the sender's operating system and distance)"
+    MAX_TTL: "Highest IP time-to-live seen"
+    LONGEST_FLOW_PKT: "Size of the biggest packet (bytes)"
+    SHORTEST_FLOW_PKT: "Size of the smallest packet (bytes)"
+    MIN_IP_PKT_LEN: "Smallest IP packet length (bytes)"
+    MAX_IP_PKT_LEN: "Largest IP packet length (bytes)"
+    SRC_TO_DST_SECOND_BYTES: "Bytes per second, client → server"
+    DST_TO_SRC_SECOND_BYTES: "Bytes per second, server → client"
+    RETRANSMITTED_IN_BYTES: "Bytes the client had to send again (lost or late TCP packets)"
+    RETRANSMITTED_IN_PKTS: "Packets the client had to send again"
+    RETRANSMITTED_OUT_BYTES: "Bytes the server had to send again"
+    RETRANSMITTED_OUT_PKTS: "Packets the server had to send again"
+    SRC_TO_DST_AVG_THROUGHPUT: "Average speed client → server (bits per second)"
+    DST_TO_SRC_AVG_THROUGHPUT: "Average speed server → client (bits per second)"
+    NUM_PKTS_UP_TO_128_BYTES: "Number of packets of at most 128 bytes"
+    NUM_PKTS_128_TO_256_BYTES: "Number of packets of 128–256 bytes"
+    NUM_PKTS_256_TO_512_BYTES: "Number of packets of 256–512 bytes"
+    NUM_PKTS_512_TO_1024_BYTES: "Number of packets of 512–1024 bytes"
+    NUM_PKTS_1024_TO_1514_BYTES: "Number of packets of 1024–1514 bytes (full-size Ethernet packets)"
+    TCP_WIN_MAX_IN: "Largest TCP window the client advertised (how much data it accepts at once)"
+    TCP_WIN_MAX_OUT: "Largest TCP window the server advertised"
+    ICMP_TYPE: "ICMP message type × 256 + code (e.g. 2048 = ping request); 0 if not ICMP"
+    ICMP_IPV4_TYPE: "ICMP message type (8 = ping request, 0 = ping reply)"
+    DNS_QUERY_TYPE: "DNS record type asked for (1 = A / IPv4 address, 28 = AAAA / IPv6); 0 if not DNS"
+    DNS_TTL_ANSWER: "How long the DNS answer may be cached (seconds)"
+    FTP_COMMAND_RET_CODE: "FTP server reply code (e.g. 230 = logged in, 530 = login failed); 0 if not FTP"
+    SRC_TO_DST_IAT_MIN: "Shortest gap between two client → server packets"
+    SRC_TO_DST_IAT_MAX: "Longest gap between two client → server packets"
+    SRC_TO_DST_IAT_AVG: "Average gap between client → server packets"
+    SRC_TO_DST_IAT_STDDEV: "How much the client → server gaps vary (standard deviation)"
+    DST_TO_SRC_IAT_MIN: "Shortest gap between two server → client packets"
+    DST_TO_SRC_IAT_MAX: "Longest gap between two server → client packets"
+    DST_TO_SRC_IAT_AVG: "Average gap between server → client packets"
+    DST_TO_SRC_IAT_STDDEV: "How much the server → client gaps vary (standard deviation)"
+  figures:                    # step 5 "Charts and verdicts from the report", in order: (file, caption); written by `uv run ftw analysis privacy`
+    - [report/generated/figures/exp2_within_macro_f1.png, "Within one dataset: XGBoost is as good as or better than every text model (Exp 2)"]
+    - [report/generated/figures/exp3_offdiag.png, "Train on one network, test on another: binned hashes (E2) transfer best (Exp 3)"]
+    - [report/generated/figures/exp3_heatmaps_grid.png, "All 4x4 cross-dataset grids (binary macro-F1)"]
+    - [report/generated/figures/privacy_attack_overall.png, "Dictionary attack on the PPFLE hashes (Exp 4)"]
+  summary_file: results/analysis_summary.md   # RQ1 + H1-H4 verdict lines shown under the charts in step 5
+
+# Edge-IIoTset label leak panel: how often each placeholder spelling appears in benign vs attack rows of the
+# as-published data. The spellings are the keys and values of `fixed_dataset`'s string_value_map.
+leak:
+  data_config: configs/data_edge.yaml
+  raw_dataset: edge_iiotset_raw
+  fixed_dataset: edge_iiotset
+  split: train
+
+# Random flows (steps 1 and 3): an attack with this probability, else a benign flow. The attack type is drawn
+# evenly over the attack classes, so rare types (backdoor, dos) show up as often as common ones.
+mystery:
+  attack_share: 0.5
+
+# Everything a visitor reads (src/demo/app.py + src/demo/ui.py). Standard terms (flow, feature, hash, token,
+# classifier), short explanations. Number keys in `findings` come from report/generated/numbers_*.tex (same keys as
+# the report, so nothing is typed here).
+story:
+  steps: ["The flow", "Flow → text", "Classification", "Hash attack", "Results"]
+  # Flow card (step 1): which feature plays which role.
+  card: {port: L4_DST_PORT, protocol: PROTOCOL, app: L7_PROTO, pkts_out: IN_PKTS, bytes_out: IN_BYTES,
+         pkts_back: OUT_PKTS, bytes_back: OUT_BYTES, duration: FLOW_DURATION_MILLISECONDS, biggest: LONGEST_FLOW_PKT,
+         ttl: MIN_TTL}
+  byte_units: [B, KB, MB, GB]
+  # Well-known services by destination port (IANA); other ports show as "unassigned / ephemeral".
+  port_names:
+    20: FTP data
+    21: FTP
+    22: SSH
+    23: Telnet
+    25: SMTP
+    53: DNS
+    80: HTTP
+    110: POP3
+    123: NTP
+    135: MS-RPC
+    139: NetBIOS
+    143: IMAP
+    443: HTTPS
+    445: SMB
+    1883: MQTT
+    3306: MySQL
+    3389: RDP
+    5900: VNC
+    8080: HTTP (alt)
+  # One entry per class of the demo dataset (the app checks this): emoji, display name, one-line definition.
+  classes:
+    benign: {emoji: "✅", name: "Benign", about: "Normal traffic, no attack."}
+    backdoor: {emoji: "🚪", name: "Backdoor", about: "Remote access through a backdoor installed earlier."}
+    ddos: {emoji: "🌊", name: "DDoS", about: "Distributed denial of service: many hosts flood one target."}
+    dos: {emoji: "💥", name: "DoS", about: "Denial of service from a single host."}
+    injection: {emoji: "💉", name: "Injection", about: "SQL or command injection through web inputs."}
+    mitm: {emoji: "🕵️", name: "MITM", about: "Man-in-the-middle: intercepting traffic between two hosts (e.g. ARP spoofing)."}
+    password: {emoji: "🔑", name: "Password", about: "Brute-force or dictionary attack on a login."}
+    ransomware: {emoji: "🔒", name: "Ransomware", about: "Malware that encrypts files and demands payment."}
+    scanning: {emoji: "🔦", name: "Scanning", about: "Port and service scanning to find open services."}
+    xss: {emoji: "🧨", name: "XSS", about: "Cross-site scripting: injected script runs in other users' browsers."}
+  # The four encodings (step 2), in app.show_encodings order. `color` = accent of the card and its highlights.
+  # `about` may use {hash_length}, {separator}, {n_bins} and {decimals} (filled from configs/encoders.yaml).
+  encodings:
+    e1_ppfle: {emoji: "🔐", badge: E1, name: "PPFLE hashes", tag: "SecurityBERT's encoding", color: "#5b4bd6",
+               about: "Each feature becomes sha256(column{separator}value), truncated to {hash_length} hex characters. Only hashes leave the network."}
+    e2_ppfle_bins: {emoji: "🎲", badge: E2, name: "Binned PPFLE", tag: "our variant", color: "#9a3fc7",
+                    about: "Numeric features are first mapped to one of {n_bins} quantile bins fitted on the training split, then hashed as column{separator}binX. Categorical features are hashed raw."}
+    e3_kv: {emoji: "🏷️", badge: E3, name: "Key=value text", tag: "readable", color: "#0f8a7e",
+            about: "Each feature written as name=value with a short readable name, floats rounded to {decimals} decimals."}
+    e4_sentence: {emoji: "💬", badge: E4, name: "Sentence template", tag: "natural language", color: "#1d6fb8",
+                  about: "A fixed English template filled with all features; protocol numbers are written as names."}
+  # Features offered as quick picks for "highlight one feature in all four texts" (step 2).
+  highlight: [L4_DST_PORT, PROTOCOL, L7_PROTO, IN_BYTES, IN_PKTS, OUT_BYTES, FLOW_DURATION_MILLISECONDS, MIN_TTL]
+  # The three classifiers (step 3): one per demo model, in this order. Colours = the report figures' palette.
+  classifiers:
+    - {model: xgboost, encoding: none, emoji: "🌳", name: "XGBoost", reads: "gradient-boosted trees on the raw feature table",
+       color: "#2a78d6"}
+    - {model: bert_small, encoding: e1_ppfle, emoji: "🧠", name: "Small BERT · E1", reads: "trained from scratch on PPFLE hashes",
+       color: "#eb6834"}
+    - {model: bert_small, encoding: e3_kv, emoji: "🧠", name: "Small BERT · E3", reads: "trained from scratch on key=value text",
+       color: "#1baf7a"}
+  # What-if analysis (step 3): feature -> label, how values are shown (count | bytes | ms) and the values offered
+  # (the flow's own value is added).
+  what_if:
+    IN_PKTS: {label: "IN_PKTS (client → server)", format: count, options: [0, 1, 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000, 5000, 20000]}
+    IN_BYTES: {label: "IN_BYTES (client → server)", format: bytes, options: [0, 40, 100, 300, 1000, 3000, 10000, 30000, 100000, 1000000, 10000000]}
+    OUT_BYTES: {label: "OUT_BYTES (server → client)", format: bytes, options: [0, 40, 100, 300, 1000, 3000, 10000, 30000, 100000, 1000000, 10000000]}
+    FLOW_DURATION_MILLISECONDS: {label: "FLOW_DURATION", format: ms, options: [0, 1, 10, 50, 100, 500, 1000, 5000, 30000, 120000]}
+  what_if_port: L4_DST_PORT   # destination port picker: the port_names above plus the flow's own port
+  # Guess-the-port game (step 4): the attack then hashes the column's whole domain from configs/privacy.yaml.
+  port_guess: {column: L4_DST_PORT, hints: [22, 53, 80, 443, 445, 8080]}
+  missing_number: "…"         # shown if a findings key has no value (e.g. results not generated yet)
+  # Step 5. `big` and `text` may use {key} (printed value) and {key|pct} (100 x raw value, app.percent_decimals).
+  # CHECK after new results: the wording of 2 and 3 assumes hyp.H2 holds and DistilBERT E2 transfers best (exp3_cross).
+  findings:
+    - emoji: "🕵️"
+      kicker: "Exp 1 · Replication"
+      title: "The published accuracy rests on a label leak"
+      big: "{exp1.paper.accuracy|pct} %"
+      big_label: "accuracy reported by SecurityBERT on Edge-IIoTset"
+      text: >-
+        Small BERT on PPFLE hashes reproduces it: {exp1.bert_small.e1_ppfle.edge_iiotset_raw.multiclass.accuracy.mean|pct} %
+        on the published file. But there, empty fields are written "0" in benign rows and "0.0" in attack rows, so the
+        formatting gives the label away: XGBoost separates benign from attack with
+        {exp1.xgboost.none.edge_iiotset_raw.binary.accuracy.mean|pct} % accuracy. With the spelling unified, small
+        BERT drops to {exp1.bert_small.e1_ppfle.edge_iiotset.multiclass.accuracy.mean|pct} %.
+    - emoji: "🌳"
+      kicker: "Exp 2 · Within one dataset"
+      title: "XGBoost on the raw table is hard to beat"
+      big: "{hyp.H2.held} of {hyp.H2.total}"
+      big_label: "datasets where XGBoost matches or beats every text model (macro-F1)"
+      text: >-
+        Gradient-boosted trees use the numeric features directly. When training and test flows come from the same
+        network, no encoding let small BERT or DistilBERT beat them on any dataset.
+    - emoji: "🌍"
+      kicker: "Exp 3 · Across datasets"
+      title: "Binned hashes transfer best to a new network"
+      big: "{exp3.distilbert.e2_ppfle_bins.off.macro_f1.mean}"
+      big_label: "binary macro-F1 on unseen datasets (DistilBERT, E2)"
+      text: >-
+        Trained on one NetFlow dataset and tested on the other three, DistilBERT on binned PPFLE scores
+        {exp3.distilbert.e2_ppfle_bins.off.macro_f1.mean}, against {exp3.xgboost.none.off.macro_f1.mean} for XGBoost
+        and {exp3.bert_small.e1_ppfle.off.macro_f1.mean} for small BERT on the published encoding (E1). Binning hides
+        exact values that only occur in one network.
+    - emoji: "🔓"
+      kicker: "Exp 4 · Privacy"
+      title: "PPFLE hashes can be reversed"
+      big: "{privacy.e1_ppfle.public.token_share.max} %"
+      big_label: "of E1 tokens recovered by a dictionary attack (best dataset)"
+      text: >-
+        With only the public encoding recipe (no salt, no key), a laptop recovers {privacy.e1_ppfle.public.token_share.min}
+        to {privacy.e1_ppfle.public.token_share.max} % of all E1 tokens in the four NetFlow test sets, and every
+        feature of up to {privacy.e1_ppfle.public.row_share.max} % of flows. Unsalted hashes of low-entropy values
+        give no privacy.

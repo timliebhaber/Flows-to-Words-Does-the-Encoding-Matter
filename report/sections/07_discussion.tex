@@ -1,0 +1,25 @@
+\section{Discussion}\label{sec:discussion}
+\paragraph{Does the encoding matter?} Yes, but not in the way PPFLE suggests. Within a dataset, the encoding can
+change a language model's macro-F1 by a lot, up to
+\resdiff{exp2.distilbert.e3_kv.edge_iiotset.macro_f1}{exp2.distilbert.e2_ppfle_bins.edge_iiotset.macro_f1} for
+DistilBERT on Edge-IIoTset. With pretraining, readable key=value text is the best choice on every dataset, while raw
+hashing never is. Still, no encoding lets a text model clearly beat XGBoost. Where DistilBERT with E3 is slightly
+ahead, on NF-CSE-CIC-IDS2018 and Edge-IIoTset, the lead is within the tie margin. Across datasets, the encoding even
+decides whether a language model can beat XGBoost at all. Binning the values before hashing gives the largest
+improvement for both language models, while readable text only helps the model trained from scratch. A likely reason is that raw hashing
+destroys the numeric order. A model then has to memorise exact values, and those rarely recur in another network. Bins
+keep a coarse order and produce tokens that are shared across datasets.
+% CHECK hyp.H2.verdict, hyp.H3.verdict, best.<d>.distilbert.encoding (E3 everywhere), largest DistilBERT encoding gap
+
+\paragraph{When does the NLP route pay off?} For detection within one known network, it does not. XGBoost is just as
+accurate and trains in about \res{time.xgboost.train.median_s}\,s per run on our laptop GPU. The small BERT needs
+about \res{time.bert_small.train.median_min}\,min and DistilBERT about \res{time.distilbert.train.median_h}\,h (\res{time.distilbert.cluster.train.median_min}\,min
+on an A100). The
+only setting where a language model came out clearly ahead is transfer to an unseen network, with binned PPFLE and
+pretraining. This is also the setting that matters most in practice. The lead holds over all \res{seeds.distilbert} seeds
+(\res{exp3.distilbert.e2_ppfle_bins.off.macro_f1} against \res{exp3.xgboost.none.off.macro_f1}), but it is measured
+on only \res{exp3.n_datasets} datasets.
+
+\paragraph{What about PPFLE?} As published, PPFLE offers neither better accuracy nor privacy. Its headline result
+depends on a label leak, raw hashing transfers worse than binned hashing for both models, and most of its tokens can be reversed in a few
+minutes on a laptop.

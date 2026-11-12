@@ -1,0 +1,65 @@
+# Text encoders E1-E4 for Edge-IIoTset (plan §5). Loaded by src/config.py:load_encoder_config.
+# Starts from configs/encoders.yaml: format (separator, NA token, rounding) and hash (SHA-256, 16 hex) are
+# inherited unchanged, so E1 is the same PPFLE as on NetFlow. Sections below replace the parent's as a whole.
+extends: configs/encoders.yaml
+
+data_config: configs/data_edge.yaml
+
+encodings:                # no 8-hex side variants on Edge-IIoTset
+  e1_ppfle: ppfle
+  e2_ppfle_bins: ppfle_binned
+  e3_kv: kv_text
+  e4_sentence: sentence
+
+binning:                  # E2 only; same settings as NetFlow except the column list
+  n_bins: 10
+  bin_prefix: bin
+  quantile_method: inverted_cdf
+  state_dir: data/encoders/e2_bins
+  # Hashed raw like E1: every text feature (cannot be binned) and numeric codes where "nearby" means nothing.
+  categorical_columns:
+    - http.request.method
+    - http.referer
+    - http.request.version
+    - dns.qry.name.len
+    - mqtt.conack.flags
+    - mqtt.protoname
+    - mqtt.topic
+    - arp.opcode
+    - tcp.flags
+    - dns.qry.type
+    - mqtt.hdrflags
+    - mqtt.msgtype
+    - mqtt.conflags
+    - mbtcp.unit_id
+
+kv_text:                  # E3
+  kv_separator: "="
+  use_aliases: false      # Edge-IIoTset column names are already short and readable (e.g. tcp.flags)
+  aliases: {}
+
+sentence:                 # E4: all 46 features, each used exactly once (checked by the loader), grouped by protocol
+  derived: {}
+  template:
+    - "The ARP opcode was {arp.opcode} with hardware size {arp.hw.size}."
+    - "The ICMP checksum was {icmp.checksum}, the sequence number {icmp.seq_le} and the unused field {icmp.unused}."
+    - "The HTTP request used method {http.request.method}, version {http.request.version} and referer {http.referer}, with content length {http.content_length}, response flag {http.response} and TLS port {http.tls_port}."
+    - "The TCP segment had flags {tcp.flags} (ACK flag {tcp.flags.ack}), length {tcp.len}, sequence number {tcp.seq}, acknowledgment number {tcp.ack} (raw {tcp.ack_raw}) and checksum {tcp.checksum}."
+    - "The TCP connection flags were FIN {tcp.connection.fin}, RST {tcp.connection.rst}, SYN {tcp.connection.syn} and SYN-ACK {tcp.connection.synack}."
+    - "The UDP stream was {udp.stream} with time delta {udp.time_delta}."
+    - "The DNS query had name {dns.qry.name}, name length {dns.qry.name.len}, QU bit {dns.qry.qu} and type {dns.qry.type}, with retransmission {dns.retransmission}, retransmit request {dns.retransmit_request} and retransmit request in {dns.retransmit_request_in}."
+    - "The MQTT message had type {mqtt.msgtype}, header flags {mqtt.hdrflags}, length {mqtt.len}, protocol {mqtt.protoname} version {mqtt.ver} (protocol length {mqtt.proto_len}), connect flags {mqtt.conflags}, clean session {mqtt.conflag.cleansess} and connect-ack flags {mqtt.conack.flags}."
+    - "The MQTT topic was {mqtt.topic} (topic length {mqtt.topic_len}) and the message was decoded as {mqtt.msg_decoded_as}."
+    - "The Modbus TCP message had length {mbtcp.len}, transaction id {mbtcp.trans_id} and unit id {mbtcp.unit_id}."
+
+length_report:
+  tokenizer: distilbert-base-uncased
+  model_max_length: 512
+  sample_rows: 20000
+  seed: 0
+  percentiles: [50, 99]
+  example: {dataset: edge_iiotset, row: 0}
+
+outputs:
+  stats_json: results/encoding_stats_edge.json
+  stats_md: results/encoding_stats_edge.md

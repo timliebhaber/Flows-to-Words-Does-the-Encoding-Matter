@@ -1,0 +1,34 @@
+\clearpage
+\section{Privacy attack: further results}\label{app:privacy}
+\Cref{fig:privacy} shows the share of NetFlow PPFLE tokens that each level of the dictionary attack of
+Experiment 4 reverses, and \cref{tab:privacyedge} gives the attack on Edge-IIoTset. The share of test tokens
+recovered per column is in \cref{fig:privacycols} for the NetFlow datasets and in \cref{fig:privacycolsedge} for
+Edge-IIoTset.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{privacy_attack_overall}
+  \caption{Appendix D. Share of PPFLE test tokens reversed per attack level (NetFlow).}
+  \label{fig:privacy}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \caption{Appendix D. Dictionary attack on Edge-IIoTset (test split), levels L1 and L2.}
+  \label{tab:privacyedge}
+  \gentable{privacy_attack_edge}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[height=0.75\textheight]{privacy_attack_columns}
+  \caption{Appendix D. Privacy attack per column, NetFlow: share of test tokens recovered (pooled over datasets).}
+  \label{fig:privacycols}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[height=0.75\textheight]{privacy_attack_edge_columns}
+  \caption{Appendix D. Privacy attack per column, Edge-IIoTset: share of test tokens recovered (both versions pooled).}
+  \label{fig:privacycolsedge}
+\end{figure}

@@ -1,0 +1,22 @@
+# NF-UNSW-NB15 v3 (2,365,424 rows). Settings that differ per dataset; global settings are in configs/data.yaml.
+name: NF-UNSW-NB15           # display name for stats/report
+raw_file: nf-unsw-nb15_v3.csv   # file inside paths.raw_dir
+
+# Raw `Attack` value -> normalized class name. Every raw value must be listed (unknown values raise).
+label_map:
+  Benign: benign
+  Analysis: analysis
+  Backdoor: backdoor
+  DoS: dos
+  Exploits: exploits
+  Fuzzers: fuzzers
+  Generic: generic
+  Reconnaissance: reconnaissance
+  Shellcode: shellcode
+  Worms: worms
+
+# Normalized classes kept whole regardless of size (on top of the rare-class rule).
+keep_all_classes: []
+
+# Raw text value -> replacement in columns.string_features (NetFlow has no text features).
+string_value_map: {}

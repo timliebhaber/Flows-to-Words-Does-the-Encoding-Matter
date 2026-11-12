@@ -1,0 +1,38 @@
+{
+  "class_names": [
+    "0",
+    "1"
+  ],
+  "params": {
+    "tree_method": "hist",
+    "device": "cuda",
+    "n_jobs": -1,
+    "n_estimators": 1000,
+    "early_stopping_rounds": 30,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "max_depth": 10,
+    "learning_rate": 0.1
+  },
+  "class_weight": "balanced",
+  "best_iteration": 99,
+  "n_test": 19887,
+  "macro_f1": 0.35914780156609327,
+  "accuracy": 0.40544074018202847,
+  "attack_recall": 0.5097524381095274,
+  "fpr": 0.6107078566866035,
+  "per_class_f1": {
+    "0": 0.5313887127457197,
+    "1": 0.1869068903864668
+  },
+  "confusion_matrix": [
+    [
+      6704,
+      10517
+    ],
+    [
+      1307,
+      1359
+    ]
+  ]
+}

@@ -1,0 +1,151 @@
+# Data pipeline config for Edge-IIoTset (plan §4.1 group A, Exp 1 replication). Loaded by src/config.py:load_config.
+# Starts from configs/data.yaml: seeds, sampling, cleaning, dedupe, split and io are inherited unchanged, so Edge
+# uses the same 200k sample size, rare-class rule, dedupe and 70/15/15 split as NetFlow. Sections below replace
+# the parent's sections as a whole.
+extends: configs/data.yaml
+
+paths:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  split_file_suffix: .parquet
+  dataset_config_dir: configs/datasets
+  stats_dir: results/dataset_stats
+  stats_summary_file: results/dataset_stats_edge.md   # separate from the NetFlow summary (it lists only these datasets)
+
+# Both read the same raw file. Decided 2026-11-01 (Daniel): main runs use edge_iiotset (placeholder spelling
+# fixed, see its config); edge_iiotset_raw keeps the file as published for one "as published" replication run.
+datasets:
+  - edge_iiotset
+  - edge_iiotset_raw
+
+columns:
+  label: Attack_label          # binary label in the raw CSV (0 normal, 1 attack)
+  attack: Attack_type          # raw attack name
+  class: attack_class
+  row_id: raw_row_id
+  benign_class: benign
+  benign_label_value: 0
+
+  # Dropped at read time. Decided 2026-11-01 (Daniel): the drop list of the dataset authors' published
+  # preprocessing (Ferrag et al., used by SecurityBERT): timestamps, IPs, payloads, URIs, TCP options, MQTT message,
+  # and the ports. Unlike NetFlow (L4_DST_PORT kept), tcp.dstport is dropped here to match the replicated setup.
+  leaky:
+    - frame.time
+    - ip.src_host
+    - ip.dst_host
+    - arp.src.proto_ipv4
+    - arp.dst.proto_ipv4
+    - http.file_data
+    - http.request.full_uri
+    - icmp.transmit_timestamp
+    - http.request.uri.query
+    - tcp.options
+    - tcp.payload
+    - tcp.srcport
+    - tcp.dstport
+    - udp.port
+    - mqtt.msg
+
+  # The remaining 46 columns in raw order. Note: in the raw file dns.qry.name holds small decimals and
+  # dns.qry.name.len holds host names (the two look swapped); kept as published.
+  features:
+    - arp.opcode
+    - arp.hw.size
+    - icmp.checksum
+    - icmp.seq_le
+    - icmp.unused
+    - http.content_length
+    - http.request.method
+    - http.referer
+    - http.request.version
+    - http.response
+    - http.tls_port
+    - tcp.ack
+    - tcp.ack_raw
+    - tcp.checksum
+    - tcp.connection.fin
+    - tcp.connection.rst
+    - tcp.connection.syn
+    - tcp.connection.synack
+    - tcp.flags
+    - tcp.flags.ack
+    - tcp.len
+    - tcp.seq
+    - udp.stream
+    - udp.time_delta
+    - dns.qry.name
+    - dns.qry.name.len
+    - dns.qry.qu
+    - dns.qry.type
+    - dns.retransmission
+    - dns.retransmit_request
+    - dns.retransmit_request_in
+    - mqtt.conack.flags
+    - mqtt.conflag.cleansess
+    - mqtt.conflags
+    - mqtt.hdrflags
+    - mqtt.len
+    - mqtt.msg_decoded_as
+    - mqtt.msgtype
+    - mqtt.proto_len
+    - mqtt.protoname
+    - mqtt.topic
+    - mqtt.topic_len
+    - mqtt.ver
+    - mbtcp.len
+    - mbtcp.trans_id
+    - mbtcp.unit_id
+
+  # The only text columns left after the drop list (the 7 the authors' recipe one-hot encodes). Their empty-field
+  # placeholder is written "0" or "0.0" depending on the source file, which leaks the label (2026-11-01 check:
+  # dns.qry.name.len, mqtt.conack.flags, mqtt.protoname, mqtt.topic separate normal/attack perfectly).
+  string_features:
+    - http.request.method
+    - http.referer
+    - http.request.version
+    - dns.qry.name.len
+    - mqtt.conack.flags
+    - mqtt.protoname
+    - mqtt.topic
+
+  # Every other feature: all numbers are written as floats ("1.0") in the raw file.
+  float_features:
+    - arp.opcode
+    - arp.hw.size
+    - icmp.checksum
+    - icmp.seq_le
+    - icmp.unused
+    - http.content_length
+    - http.response
+    - http.tls_port
+    - tcp.ack
+    - tcp.ack_raw
+    - tcp.checksum
+    - tcp.connection.fin
+    - tcp.connection.rst
+    - tcp.connection.syn
+    - tcp.connection.synack
+    - tcp.flags
+    - tcp.flags.ack
+    - tcp.len
+    - tcp.seq
+    - udp.stream
+    - udp.time_delta
+    - dns.qry.name
+    - dns.qry.qu
+    - dns.qry.type
+    - dns.retransmission
+    - dns.retransmit_request
+    - dns.retransmit_request_in
+    - mqtt.conflag.cleansess
+    - mqtt.conflags
+    - mqtt.hdrflags
+    - mqtt.len
+    - mqtt.msg_decoded_as
+    - mqtt.msgtype
+    - mqtt.proto_len
+    - mqtt.topic_len
+    - mqtt.ver
+    - mbtcp.len
+    - mbtcp.trans_id
+    - mbtcp.unit_id

@@ -1,0 +1,40 @@
+[project]
+name = "flows-to-words"
+version = "0.1.0"
+description = "Flows to Words: Does the Encoding Matter? NLP course project."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "scikit-learn",
+    "xgboost",
+    "torch",
+    "transformers",
+    "tokenizers",
+    "datasets",
+    "accelerate",
+    "pyyaml",
+    "matplotlib",
+    "seaborn",
+    "tqdm",
+]
+
+[project.scripts]
+ftw = "src.run:main"  # pipeline entry point: `uv run ftw --dry-run` (see configs/pipeline.yaml)
+
+[dependency-groups]
+dev = ["pytest", "ruff", "jupyter", "streamlit"]   # streamlit: live demo app (src/demo/app.py)
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+src = ["."]  # packages are imported as src.<pkg>; keeps e.g. HF `tokenizers` classified as third-party

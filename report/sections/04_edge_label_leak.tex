@@ -1,0 +1,17 @@
+\section{A label leak in Edge-IIoTset}\label{sec:leak}
+In the published Edge-IIoTset files, an empty field is written as \texttt{"0"} in the normal-traffic captures and as
+\texttt{"0.0"} in the attack captures. \citet{edgeleak2026} reports the same artifact. The spelling alone
+therefore reveals the label. On the data as published, four single features reach binary macro-F1
+\res{leakage.edge_iiotset_raw.binary.mqtt.topic}: \texttt{mqtt.topic}, \texttt{mqtt.protoname},
+\texttt{mqtt.conack.flags} and \texttt{dns.qry.name.len}. Once the spelling is unified, the best of them reaches only
+\res{leakage.edge_iiotset.binary.dns.qry.name.len}. Any model that sees the raw strings can exploit this. That
+includes PPFLE, because \texttt{column\$0} and \texttt{column\$0.0} hash to different tokens.
+
+The effect is large (\cref{tab:exp1}). XGBoost reaches \res{exp1.xgboost.none.edge_iiotset_raw.multiclass.accuracy}
+accuracy on the data as published, but \res{exp1.xgboost.none.edge_iiotset.multiclass.accuracy} after the fix. Its
+binary macro-F1 drops from \res{exp1.xgboost.none.edge_iiotset_raw.binary.macro_f1} to
+\res{exp1.xgboost.none.edge_iiotset.binary.macro_f1}. Our PPFLE + small BERT replication shows the same pattern. It
+reaches \res{exp1.bert_small.e1_ppfle.edge_iiotset_raw.multiclass.accuracy} accuracy on the data as published, close
+to the paper's \res{exp1.paper.accuracy}, but only \res{exp1.bert_small.e1_ppfle.edge_iiotset.multiclass.accuracy} on
+the fixed data. All other Edge-IIoTset results in this report use the fixed data. We also noticed that the columns
+\texttt{dns.qry.name} and \texttt{dns.qry.name.len} seem to be swapped in the raw file. We keep them as published.

@@ -1,0 +1,111 @@
+% Flows to Words: Does the Encoding Matter? -- report (see report/outline.md for what goes in each section).
+% Format: ACL two-column style (acl.sty + acl_natbib.bst, unmodified copies from github.com/acl-org/acl-style-files).
+% Page limit: 7 pages of main text at most (abstract to Conclusion); Limitations, references and appendix do not count.
+% To stay under it, the main text keeps only the tables the argument needs; every other table/figure is in the appendix.
+%
+% RULE: never type a result or setting into this file. Every number comes from generated/numbers_*.tex:
+%   \res{key}          prints a value, e.g. \res{exp2.xgboost.none.nf_unsw_nb15.macro_f1}
+%   \resnum{key}       the raw number (for arithmetic)
+%   \resdiff{a}{b}     a - b, rounded (needs LaTeX 2022 or newer for \fpeval; Overleaf has it)
+%   \respct{a}{b}      100 * a / b, rounded (a share in %, e.g. rows removed by dedupe)
+%   \resor{key}{text}  the value, or `text` (no warning) if the key has none yet; the generated tables use it
+%   \respercentof{key} a fraction key as a percentage (e.g. the 0.7 train split -> 70)
+% A key without a value prints a red ?? plus the key and a warning in the log. All keys and their current values:
+% results/numbers_analysis.md and results/numbers_privacy*.md in the code repo.
+%
+% Everything under generated/ (tables, figures, numbers) is written by `uv run ftw analysis privacy privacy_edge`; do
+% not edit it here or on Overleaf. This folder (report/) is the Overleaf project, synced with git subtree.
+% Sentences whose wording depends on a verdict carry a "% CHECK <key>" comment: re-read them after a rerun.
+% Citations: \cite or \citep = "(Author, Year)", \citet = "Author (Year)" when the authors are part of the sentence.
+\documentclass[11pt]{article}
+\usepackage[final]{acl}
+
+% ---- fonts (as in the ACL template) ----
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{inconsolata}                    % typewriter font for hashes and key=value text
+
+% ---- tables, figures, lists ----
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{xfp}                            % \fpeval on older LaTeX (e.g. tectonic); built in since 2022
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta}
+\usepackage[most]{tcolorbox}
+\usepackage{float}                           % [H]: appendix figures stay under their heading
+\usepackage{cleveref}                       % after hyperref, which acl.sty loads
+
+% ---- colours of the pipeline figure (blue ramp of the generated figures) ----
+\definecolor{accent}{HTML}{184F95}
+\definecolor{accentlight}{HTML}{CDE2FB}
+
+% "Key findings" box in the introduction
+\newtcolorbox{findings}[1][]{enhanced, colback=white, colframe=black, boxrule=0.4pt, arc=0pt,
+  left=4pt, right=4pt, top=3pt, bottom=3pt, coltitle=black, colbacktitle=white, fonttitle=\bfseries, title=#1}
+
+\graphicspath{{generated/figures/}}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+
+% ---- generated numbers ----
+\makeatletter
+\newcommand{\resset}[3]{\expandafter\def\csname res@#1\endcsname{#2}\expandafter\def\csname resraw@#1\endcsname{#3}}
+\DeclareRobustCommand{\res}[1]{%
+  \ifcsname res@#1\endcsname\csname res@#1\endcsname
+  \else\@latex@warning{No generated value for result key `#1'}\textcolor{red}{\textbf{??}\texttt{\detokenize{#1}}}\fi}
+\DeclareRobustCommand{\resor}[2]{\ifcsname res@#1\endcsname\csname res@#1\endcsname\else #2\fi}
+\newcommand{\resnum}[1]{\ifcsname resraw@#1\endcsname\csname resraw@#1\endcsname\else 0\fi}
+\newcommand{\resdiff}[2]{\fpeval{round(\resnum{#1}-\resnum{#2},\resdecimals)}}
+\newcommand{\respercentof}[1]{\fpeval{round(100*\resnum{#1},\respctdecimals)}}
+\newcommand{\respct}[2]{\fpeval{round(100*\resnum{#1}/\resnum{#2},\respctdecimals)}}
+\makeatother
+\newcommand{\resinput}[1]{\IfFileExists{generated/#1.tex}{\input{generated/#1.tex}}{\typeout{Missing generated/#1.tex}}}
+\resinput{numbers_analysis}
+\resinput{numbers_privacy}
+\resinput{numbers_privacy_edge}
+\newcommand{\gentable}[1]{\resizebox{\linewidth}{!}{\input{generated/#1.tex}}}
+
+% ---- title and authors ----
+\title{Flows to Words: Does the Encoding Matter?\thanks{Course project, T-725-MALV Natural Language Processing,
+  Reykjavik University, Fall 2026. Supervisor: Stefán Ólafsson.}}
+
+\author{Daniel Z. El Deen K. Al Hennaw \\ Reykjavik University \\ \texttt{daniele23@ru.is} \And
+  Tim Liebhaber \\ Reykjavik University \\ \texttt{tim.liebhaber@uni-ulm.de} \And
+  Vid Kali\v{s}nik \\ Reykjavik University \\ \texttt{vid26@ru.is}}
+
+\begin{document}
+% The text is in sections/ (one file per section); this file holds the setup and the order of the sections.
+\maketitle
+
+%====== MAIN TEXT (7-page limit) ======%
+\input{sections/00_abstract}
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_data}
+\input{sections/04_edge_label_leak}
+\input{sections/05_method}
+\input{sections/06_results}
+\input{sections/07_discussion}
+\input{sections/09_conclusion}
+
+%====== AFTER THE MAIN TEXT (not counted in the page limit) ======%
+\input{sections/08_limitations}
+\input{sections/11_acknowledgments}
+\input{sections/10_reproducibility}
+\input{sections/12_ai_tools}
+
+\bibliography{references}
+
+%====== APPENDIX (one column: mostly full-page figures, each placed under its own heading) ======%
+\onecolumn
+\appendix
+\input{sections/A_data_pipeline}
+\input{sections/B_additional_results}
+\input{sections/C_error_analysis}
+\input{sections/D_privacy_attack}
+\end{document}

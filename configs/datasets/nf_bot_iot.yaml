@@ -1,0 +1,20 @@
+# NF-BoT-IoT v3 (16,933,808 rows). Settings that differ per dataset; global settings are in configs/data.yaml.
+name: NF-BoT-IoT             # display name for stats/report
+raw_file: nf-bot-iot_v3.csv  # file inside paths.raw_dir
+
+# Raw `Attack` value -> normalized class name. Every raw value must be listed (unknown values raise).
+label_map:
+  Benign: benign
+  DDoS: ddos
+  DoS: dos
+  Reconnaissance: reconnaissance
+  Theft: theft
+
+# Normalized classes kept whole regardless of size (on top of the rare-class rule).
+# Benign is only 0.3% here (51,989 rows); natural proportions would leave ~90 benign test rows,
+# making FPR meaningless. Decided 2026-10-20: keep all benign (a reported deviation from natural proportions).
+keep_all_classes:
+  - benign
+
+# Raw text value -> replacement in columns.string_features (NetFlow has no text features).
+string_value_map: {}

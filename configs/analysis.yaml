@@ -1,0 +1,204 @@
+# Analysis of the finished runs (plan §7, §11): Exp 1 replication table, Exp 2 within-dataset table, Exp 3
+# cross-dataset heatmaps + summary, error analysis, and a Markdown summary answering H1-H4 (plan §2).
+# Loaded by src/config.py:load_analysis_config. Run: uv run python -m src.eval.analysis --config configs/analysis.yaml
+# CPU only. Reads results.csv and run_details/ and never writes them (training runs may append rows meanwhile).
+
+inputs:
+  results_file: results/results.csv
+  run_details_dir: results/run_details      # <run_id>.json: per_class_f1, confusion_matrix, class_names
+  # Columns the analysis needs in results.csv (a subset of the models' results_columns).
+  required_columns: [run_id, experiment, encoding, model, train_dataset, test_dataset, task, seed,
+                     macro_f1, accuracy, attack_recall, fpr, max_len, train_time_s, infer_time_ms]
+
+# Dataset order + display names for every table and figure. A dataset without rows yet shows as "pending"
+# (Edge-IIoTset fills in by itself when its runs finish).
+datasets:
+  nf_unsw_nb15: UNSW-NB15
+  nf_ton_iot: ToN-IoT
+  nf_bot_iot: BoT-IoT
+  nf_cse_cic_ids2018: CIC-IDS2018
+  edge_iiotset: Edge-IIoTset
+
+# Method rows in order: (model, encoding) as written in results.csv, plus the label shown.
+methods:
+  - {model: xgboost, encoding: none, label: XGBoost}
+  - {model: bert_small, encoding: e1_ppfle, label: Small BERT E1 PPFLE}
+  - {model: bert_small, encoding: e2_ppfle_bins, label: Small BERT E2 PPFLE-bins}
+  - {model: bert_small, encoding: e3_kv, label: Small BERT E3 key=value}
+  - {model: bert_small, encoding: e4_sentence, label: Small BERT E4 sentence}
+  - {model: distilbert, encoding: e1_ppfle, label: DistilBERT E1 PPFLE}
+  - {model: distilbert, encoding: e2_ppfle_bins, label: DistilBERT E2 PPFLE-bins}
+  - {model: distilbert, encoding: e3_kv, label: DistilBERT E3 key=value}
+  - {model: distilbert, encoding: e4_sentence, label: DistilBERT E4 sentence}
+
+models:                       # display names (figure legends, hypothesis text)
+  xgboost: XGBoost
+  bert_small: Small BERT
+  distilbert: DistilBERT
+encodings:                    # short display names (figure axes)
+  none: raw table
+  e1_ppfle: E1 PPFLE
+  e2_ppfle_bins: E2 PPFLE-bins
+  e3_kv: E3 key=value
+  e4_sentence: E4 sentence
+
+# DistilBERT side runs (8-hex hashes, nothing truncated) vs the main encoding they are compared with.
+side_runs:
+  encodings:
+    e1_ppfle_h8: e1_ppfle
+    e2_ppfle_bins_h8: e2_ppfle_bins
+  main_label: full hash, truncated     # column headers; no numbers here, they would end up typed in the report
+  side_label: short hash, nothing cut
+
+within:                       # Exp 2 (NetFlow) + the Edge-IIoTset column (experiment exp1), train = test dataset
+  experiments: [exp2, exp1]
+  task: multiclass
+  metrics: [macro_f1, accuracy]   # one table each; the first is the primary metric (plan §7.1)
+
+cross:                        # Exp 3: 4x4 train/test grid, binary label only
+  experiment: exp3
+  task: binary
+  datasets: [nf_unsw_nb15, nf_ton_iot, nf_bot_iot, nf_cse_cic_ids2018]
+  metrics: [macro_f1, attack_recall, fpr]   # first = heatmap metric and the "generalisation" number
+
+replication:                  # Exp 1 (RQ1)
+  experiment: exp1
+  versions:                   # column groups: dataset -> label
+    edge_iiotset: fixed ("0"/"0.0" unified)
+    edge_iiotset_raw: as published
+  tasks: [multiclass, binary] # rows per method and task, where results exist
+  # Which text-model runs exist per data version: read from `dataset_encodings` in these model configs (a version
+  # listed there runs only those encodings). Cells of runs that are never planned show format.not_run, not "pending".
+  planned_from:
+    bert_small: configs/bert_small_edge.yaml
+    distilbert: configs/distilbert_edge.yaml
+  metrics: [accuracy, macro_f1]
+  paper:                      # SecurityBERT (PPFLE + small BERT) on Edge-IIoTset, 15 classes
+    label: SecurityBERT paper (E1 PPFLE)
+    accuracy: 0.982
+    version: edge_iiotset_raw # the paper used the data as published
+    model: bert_small         # our run that replicates it: small BERT on E1 PPFLE, multiclass
+    encoding: e1_ppfle
+    task: multiclass
+    close_margin: 0.03        # plan §7.2 "within a few points": |accuracy - paper| <= this counts as reproduced
+    params_millions: 11       # model size the paper states (plan §6.2: "about 11M"), for the report
+
+format:
+  decimals: 3
+  std_ddof: 1                 # sample std over seeds (n-1)
+  one_seed_marker: "†"        # cells averaged over a single seed (DistilBERT): no std, flagged
+  tex_one_seed_marker: "\\textsuperscript{\\dag}"   # the same marker in the .tex tables (pdflatex-safe)
+  pending: pending            # cell text when a run has no results yet
+  not_run: "--"               # cell text for a run that is not part of the plan (LaTeX shows an en dash)
+  max_seeds_note: true        # footnote with the seed counts under each table
+  lower_is_better: [fpr]      # metrics where the smallest value is bold (all others: largest)
+  metric_labels: {macro_f1: macro-F1, accuracy: accuracy, attack_recall: attack recall, fpr: FPR}
+
+errors:                       # error analysis from run_details (multiclass, within dataset)
+  confusion_models: [xgboost, bert_small, distilbert]   # XGBoost + the best encoding of each text model
+  top_confusions: 5           # most frequent true->predicted mix-ups listed per dataset and method
+  hard_class_f1: 0.5          # a class is "hard" if even the best method stays below this per-class F1
+
+hypotheses:                   # rule-based verdicts (decided 2026-11-01, Daniel: numbers + verdict)
+  # A difference counts only if |delta| > max(tie_margin, larger seed std of the two cells); else it is a tie.
+  tie_margin: 0.01
+  well_margin: 0.05           # H1: "does well" = best E1 model within this much macro-F1 of the best method
+  baseline_model: xgboost
+  text_models: [bert_small, distilbert]
+  pretrained_model: distilbert
+  scratch_model: bert_small
+  ppfle_encoding: e1_ppfle
+  alternative_encodings: [e2_ppfle_bins, e3_kv, e4_sentence]   # H3: grouped or readable
+  readable_encodings: [e3_kv, e4_sentence]                     # H4
+  hashed_encodings: [e1_ppfle, e2_ppfle_bins]                  # H4
+
+figures:
+  dir: report/generated/figures   # inside report/, which is the Overleaf project (synced with git subtree)
+  formats: [pdf, png]         # PDF for LaTeX/Overleaf (vector), PNG for quick viewing
+  dpi: 200                    # PNG only
+  font_size: 8
+  # Colours: dataviz reference palette, light mode (validated: categorical slots 1-3 pass all-pairs CVD checks).
+  model_colors: {xgboost: "#2a78d6", bert_small: "#eb6834", distilbert: "#1baf7a"}
+  model_markers: {xgboost: s, bert_small: o, distilbert: D}   # second channel besides colour (prints in grey)
+  sequential_ramp: ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"]  # blue 100->700
+  text_primary: "#0b0b0b"
+  text_secondary: "#52514e"
+  text_on_dark: "#fcfcfb"     # annotations on dark heatmap cells
+  dark_cell_threshold: 0.55   # heatmap value (0-1 scale) above which annotations switch to text_on_dark
+  grid: "#e2e1dc"
+  surface: "#ffffff"          # paper background
+  heatmap_range: [0.0, 1.0]   # fixed colour scale (and dot-plot axis for Exp 3), so figures are comparable
+  marker_size: 6              # points (dot plots); a hollow marker = 1 seed
+  min_axis_span: 0.05         # Exp 2 dot plot: each panel shows at least this much macro-F1 (tiny stds stay small)
+  annot_decimals: 2           # numbers printed inside heatmap cells
+  annot_font_size: 6
+  confusion_min_share: 0.01   # confusion cells below this share of the true class are left unlabelled
+  style: {line_width: 1.0, capsize: 2, dodge: 0.22, outline_width: 1.5}   # dodge = vertical offset between models
+  sizes:                      # inches
+    heatmap: [3.0, 2.7]       # one Exp 3 heatmap
+    grid_panel: [2.4, 2.2]    # one panel of the combined Exp 3 grid
+    dot_panel: [1.9, 2.4]     # one dataset panel of the Exp 2 dot plot
+    offdiag_panel: [2.2, 3.0] # one metric panel of the Exp 3 summary dot plot
+    cell: [0.42, 0.26]        # per-class F1 heatmap: width per class, height per method
+    confusion_cell: 0.24      # confusion matrix: side length per class
+    margins: [2.2, 1.3]       # extra width/height around per-class/confusion grids for labels
+
+outputs:                      # tables: .md and .csv at these stems, the booktabs .tex (same file name) in tex_dir
+  tex_dir: report/generated                # LaTeX tables go into the report (Overleaf project)
+  exp2_table: results/exp2_within          # + _<metric>, one table per within.metrics entry
+  side_runs_table: results/exp2_side_runs
+  exp1_table: results/exp1_replication
+  exp3_table: results/exp3_cross
+  error_analysis: results/error_analysis.md
+  summary: results/analysis_summary.md     # written last: src/run.py treats it as the "done" marker
+
+# One flow written in every encoding (report, Method section), taken from the encoder stats (`example`).
+examples:
+  source: results/encoding_stats.json
+  tex: report/generated/encoding_examples.tex
+  max_chars: 230              # each text is cut at a word boundary after this many characters (then "...")
+  monospace: [e1_ppfle, e2_ppfle_bins, e3_kv]   # set in typewriter font; the sentence encoding in normal text
+  text_width: 0.78\linewidth  # width of the text column
+
+# Which runs the timing keys come from. Seed 0 of every model ran on the laptop GPU (RTX A3000); DistilBERT seeds
+# 1-2 ran on the Elja cluster (A100, 2026-11-02). Mixing them would make the medians meaningless, so the main keys
+# time.<model>.train.* use `seeds` only, and the cluster runs get their own keys time.<model>.cluster.train.*.
+timing:
+  seeds: [0]
+  cluster: {seeds: [1, 2], models: [distilbert]}
+
+# Every number the report may quote, as LaTeX macros (Daniel, 2026-11-01: never type a result into the text).
+# Written with the tables; report/main.tex reads `tex` and prints a value with \res{key}. `md` lists all keys.
+numbers:
+  tex: report/generated/numbers_analysis.tex
+  md: results/numbers_analysis.md
+  macro: resset              # LaTeX command per key: \resset{key}{text}{raw}; defined in report/main.tex
+  float_decimals: 3          # numbers from stats files and configs
+  percent_decimals: 1
+  time_decimals: 1           # training/inference times (s, min, h)
+  params_decimals: 2         # model size in millions
+  max_string_length: 40      # longer strings (example rows, commands) are left out
+  # After writing, every \res{...} key used in these files (glob patterns allowed) is looked up in these numbers
+  # files; keys without a value are listed as a warning (e.g. a typo, or a result that does not exist yet).
+  report_files: [report/main.tex, report/sections/*.tex, report/outline.md]
+  all_numbers: [report/generated/numbers_analysis.tex, report/generated/numbers_privacy.tex,
+                report/generated/numbers_privacy_edge.tex]
+  # Files flattened into keys <prefix>.<path inside the file> (glob: <prefix>.<file stem>.<path>); missing files are
+  # skipped, so Edge-IIoTset stats appear once they exist. Lists of records are keyed by `list_keys`.
+  sources:
+    - {prefix: data, glob: "results/dataset_stats/*.json"}
+    - {prefix: leakage, path: results/leakage_check.json}
+    - {prefix: leakage, path: results/leakage_check_edge.json}
+    - {prefix: encoding, path: results/encoding_stats.json}
+    - {prefix: encoding_edge, path: results/encoding_stats_edge.json}
+    - {prefix: tokenizer, path: results/tokenizer_stats.json, list_keys: [encoding, dataset]}
+    - {prefix: tokenizer_edge, path: results/tokenizer_stats_edge.json, list_keys: [encoding, dataset]}
+    - {prefix: tuning.xgb, path: results/xgb_tuning.json}
+    - {prefix: tuning.xgb, path: results/xgb_tuning_edge.json}
+    - {prefix: tuning.bert_small, path: results/bert_small_tuning.json}
+    - {prefix: tuning.bert_small, path: results/bert_small_tuning_edge.json}
+    - {prefix: tuning.distilbert, path: results/distilbert_tuning.json}
+    - {prefix: tuning.distilbert, path: results/distilbert_tuning_edge.json}
+    - {prefix: smoke.distilbert, path: results/distilbert_smoke.json}
+    - {prefix: cfg, glob: "configs/*.yaml"}             # settings (sample size, bins, vocab, LRs, ...): cfg.<file>.<path>
+    - {prefix: cfg.datasets, glob: "configs/datasets/*.yaml"}

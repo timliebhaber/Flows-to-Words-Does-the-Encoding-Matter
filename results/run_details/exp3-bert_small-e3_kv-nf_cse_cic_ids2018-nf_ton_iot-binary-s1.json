@@ -1,0 +1,51 @@
+{
+  "class_names": [
+    "0",
+    "1"
+  ],
+  "lr": 0.0005,
+  "curve": [
+    {
+      "epoch": 1,
+      "train_loss": 0.15369,
+      "val_macro_f1": 0.98369
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.03946,
+      "val_macro_f1": 0.98642
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.0342,
+      "val_macro_f1": 0.98526
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.02972,
+      "val_macro_f1": 0.98709
+    }
+  ],
+  "best_epoch": 4,
+  "n_params": 1479554,
+  "max_len": 228,
+  "n_test": 14847,
+  "macro_f1": 0.47625238761858935,
+  "accuracy": 0.5737859500235738,
+  "attack_recall": 0.17173524150268335,
+  "fpr": 0.1419866636008278,
+  "per_class_f1": {
+    "0": 0.7022678084125341,
+    "1": 0.2502369668246445
+  },
+  "confusion_matrix": [
+    [
+      7463,
+      1235
+    ],
+    [
+      5093,
+      1056
+    ]
+  ]
+}

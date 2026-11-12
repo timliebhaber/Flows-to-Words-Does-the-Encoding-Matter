@@ -1,0 +1,60 @@
+\section{Method}\label{sec:method}
+\Cref{fig:pipeline} (\cref{app:data}) gives an overview. Every method sees the same cleaned, deduplicated and split data. The language
+models read it through one of four text encodings, while XGBoost reads the table directly.
+
+
+\paragraph{Encodings.} All encodings go through the features in the same fixed order, write missing values as
+\texttt{NA} and join the parts with spaces (\cref{tab:examples}).
+\textbf{E1 (PPFLE)} replaces each \texttt{column\$value} with its \res{cfg.encoders.hash.algorithm} hash, cut to
+\res{cfg.encoders.hash.length} hexadecimal characters, as in SecurityBERT.
+\textbf{E2 (binned PPFLE)} first maps each numeric value to one of \res{cfg.encoders.binning.n_bins} quantile bins,
+fitted on the training split, and then hashes \texttt{column\$binK}. Categorical columns such as ports, protocols and
+flags are hashed as in E1. \textbf{E3} writes readable \texttt{key=value} pairs with short column names. \textbf{E4}
+fills a fixed template of English sentences and replaces protocol codes with their names.
+
+\begin{table*}[!tbp]
+  \centering
+  \caption{The same NetFlow flow in the four encodings (beginning of each text only).}
+  \label{tab:examples}
+  \input{generated/encoding_examples.tex}
+\end{table*}
+
+\paragraph{Models.} \textbf{XGBoost}, an ensemble of gradient-boosted decision trees, reads the cleaned table
+directly. Its depth, learning rate and class weighting are chosen on the validation split, with early stopping.
+
+Both language models are BERT-style Transformer encoders~\cite{devlin2019bert}. They read the token sequence of a
+flow, and a classification layer on the representation of the first token predicts the class. The \textbf{small
+BERT} starts from random weights and only ever sees flow texts. It follows the size stated for SecurityBERT: \res{cfg.bert_small.model.num_hidden_layers}
+layers, hidden size \res{cfg.bert_small.model.hidden_size}, \res{cfg.bert_small.model.num_attention_heads} attention
+heads and feed-forward size \res{cfg.bert_small.model.intermediate_size}. This gives \res{params.bert_small.millions}\,M
+parameters, not the \res{exp1.paper.params_millions}\,M the paper states. It uses a byte-level BPE tokenizer with
+\res{cfg.bert_small.tokenizer.vocab_size} tokens, trained separately for each encoding on the training split. The
+maximum input length covers the \res{cfg.bert_small.tokenizer.coverage_percentile}th percentile of training rows. The
+model is trained for \res{cfg.bert_small.training.epochs} epochs, and we keep the epoch that does best on validation.
+
+\textbf{DistilBERT}~\cite{sanh2019distilbert} is a compressed version of BERT. It has half the layers of BERT-base and
+was trained by knowledge distillation, that is, to reproduce BERT's predictions on the same English text (books and
+Wikipedia). It keeps most of BERT's accuracy on language-understanding benchmarks while being smaller and faster.
+Unlike the small BERT, it therefore starts with knowledge of English words and numbers, which is what H4 tests. We
+fine-tune the pretrained uncased model (\res{params.distilbert.millions}\,M parameters) for
+\res{cfg.distilbert.training.epochs} epochs with its own WordPiece tokenizer, which is not retrained. Hashes break into many WordPieces, so E1
+needs \res{encoding.stats.nf_unsw_nb15.encodings.e1_ppfle.wordpiece_tokens.p99} tokens for nearly all rows. It is
+therefore cut at DistilBERT's limit of \res{cfg.distilbert.tokenizer.max_len_cap} tokens. Side runs with shorter
+hashes, where nothing is cut, show no systematic cost of this truncation (\cref{tab:side}, \cref{app:more}).
+
+\paragraph{Tuning and protocol.} The learning rate of each language model is picked from a grid of
+\res{cfg.bert_small.tuning.lr_grid.count} values on the validation split of one pilot dataset, NF-UNSW-NB15, and
+reused for the other NetFlow datasets. Edge-IIoTset is tuned the same way on its own validation split.
+% CHECK cfg.<model>.tuning.pilot.dataset and cfg.<model>_edge.tuning.pilot.dataset
+Every method sees the same samples, splits and columns, and the test split is used only once. Every model is run
+with \res{seeds.distilbert} seeds and reported as mean $\pm$ standard deviation. DistilBERT is the most expensive
+model, so its second and third seeds were trained on an A100 GPU of the Elja cluster, with the same settings and
+learning rates as the first. Only the two truncation side runs use a single seed.
+% CHECK seeds.xgboost = seeds.bert_small = seeds.distilbert
+
+Macro-F1 is our main metric. We also report accuracy, to compare with the paper, and for cross-dataset runs the
+attack recall and false-positive rate (FPR). For the hypotheses, we treat two numbers as different only if they
+differ by more than \res{cfg.analysis.hypotheses.tie_margin} and by more than the larger of their seed standard
+deviations. Otherwise we call them tied. We call an encoding ``good'' if it is within
+\res{cfg.analysis.hypotheses.well_margin} of the best method.
+

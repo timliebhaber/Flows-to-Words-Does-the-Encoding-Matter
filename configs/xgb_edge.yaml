@@ -1,0 +1,54 @@
+# XGBoost baseline + single-feature leakage check on Edge-IIoTset (Exp 1). Loaded by src/config.py:load_model_config.
+# Starts from configs/xgb.yaml (seeds, tuning grid, model name, results columns); sections below replace the
+# parent's sections as a whole.
+extends: configs/xgb.yaml
+
+data_config: configs/data_edge.yaml
+
+# Edge-IIoTset is not part of the cross-dataset grid (different features), so nothing is tested on other datasets.
+# Binary is kept for XGBoost only: it is where the "0"/"0.0" placeholder leak shows (normal vs attack), so the
+# leakage check and the "as published" comparison need it. Text models run multiclass only.
+tasks:
+  multiclass:
+    target: class
+    benign: benign_class
+    experiment: exp1       # Edge-IIoTset runs: replication (Exp 1) and the Edge column of the Exp 2 table
+    cross_dataset: false
+    eval_metric: mlogloss
+  binary:
+    target: label
+    benign: benign_label_value
+    experiment: exp1
+    cross_dataset: false
+    eval_metric: logloss
+
+params:                    # as configs/xgb.yaml, plus categorical support for the text features
+  tree_method: hist
+  device: cuda
+  n_jobs: -1
+  n_estimators: 1000
+  early_stopping_rounds: 30
+  subsample: 0.8
+  colsample_bytree: 0.8
+  enable_categorical: true # text features are pandas categoricals (categories from the train split)
+
+leakage:
+  eval_split: val
+  flag_threshold: 0.99
+  seed: 0
+  params:
+    tree_method: hist
+    device: cpu
+    n_jobs: -1
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.3
+    enable_categorical: true
+  class_weight: none
+
+outputs:
+  results_file: results/results.csv
+  run_details_dir: results/run_details
+  tuning_file: results/xgb_tuning_edge.json
+  leakage_json: results/leakage_check_edge.json   # separate: the Markdown report lists only this config's datasets
+  leakage_md: results/leakage_check_edge.md

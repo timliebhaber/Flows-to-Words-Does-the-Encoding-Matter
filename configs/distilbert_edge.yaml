@@ -1,0 +1,45 @@
+# Fine-tuned DistilBERT on Edge-IIoTset (Edge column of the Exp 2 table). Loaded by
+# src/config.py:load_distilbert_config. Starts from configs/distilbert.yaml: pretrained model, tokenizer cap,
+# training settings, LR grid and seeds (1) are inherited unchanged. Sections below replace the parent's.
+extends: configs/distilbert.yaml
+
+data_config: configs/data_edge.yaml
+encoder_config: configs/encoders_edge.yaml
+
+encodings: [e1_ppfle, e2_ppfle_bins, e3_kv, e4_sentence]   # no 8-hex side runs on Edge-IIoTset
+
+tasks:                     # same block as configs/bert_small_edge.yaml
+  multiclass:
+    target: class
+    benign: benign_class
+    experiment: exp1
+    cross_dataset: false
+
+tuning:
+  lr_grid: [0.00002, 0.00003, 0.00005]
+  scope: pilot
+  pilot: {dataset: edge_iiotset, task: multiclass}
+
+side_runs: {}
+
+# The "as published" data is a small-BERT-only replication check (decided 2026-11-01): no DistilBERT runs.
+dataset_encodings:
+  edge_iiotset_raw: []
+
+smoke:                     # timing only (never the test split); same settings as NetFlow, on Edge-IIoTset
+  encodings: [e1_ppfle, e3_kv, e4_sentence]
+  dataset: edge_iiotset
+  task: multiclass
+  train_rows: 2048
+  steps: 25
+  warmup_steps: 3
+  batch_sizes: [16, 32, 64]
+  eval_rows: 2048
+  lr: 0.00003
+
+outputs:
+  results_file: results/results.csv
+  run_details_dir: results/run_details
+  tuning_file: results/distilbert_tuning_edge.json
+  smoke_json: results/distilbert_smoke_edge.json
+  smoke_md: results/distilbert_smoke_edge.md

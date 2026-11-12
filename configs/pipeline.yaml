@@ -1,0 +1,372 @@
+# Pipeline orchestrator (src/run.py, alias `uv run ftw`): which steps exist, their order, what they need,
+# how to tell they are done and roughly how long they take. Loaded by src/config.py:load_pipeline_config.
+#
+# Every step is the documented per-module command, run as a subprocess once per pending unit
+# (e.g. one dataset, or one encoding x dataset x task). Finished units are skipped, so a crashed run can be
+# restarted with the same command. Models still read their own configs: seeds, splits, LRs etc. live there.
+
+# Target used when no group/stage is named on the command line. Decided 2026-10-28: leakage is not in `all`.
+default_target: all
+
+# Unit dimension -> CLI flag the modules accept. Values come from each stage's own config
+# (datasets from the data config, encodings and tasks from the model/tokenizer config).
+dims:
+  dataset: --dataset
+  encoding: --encoding
+  task: --task
+
+# How commands are shown in the dry-run (execution uses the current Python interpreter, i.e. the uv venv).
+show_command: [uv, run, python, -m]
+
+# Named groups of stages (run in stage order, not in the order listed here). Single stages such as `data`,
+# `leakage` or `encoders` are targets by their own name, so they need no group.
+groups:
+  xgb: [xgb_tune, xgb_final]
+  bert_small: [tokenizers, bert_small_tune, bert_small_final]
+  distilbert: [distilbert_tune, distilbert_final]
+  demo: [demo_models]   # live demo models, not in `all`
+  edge: [data_edge, xgb_edge_tune, xgb_edge_final, encoders_edge, tokenizers_edge, bert_small_edge_tune,
+         bert_small_edge_final, distilbert_edge_tune, distilbert_edge_final]   # leakage_edge is separate, like leakage
+  all: [data, xgb_tune, xgb_final, encoders, tokenizers, bert_small_tune, bert_small_final, distilbert_tune,
+        distilbert_final, data_edge, xgb_edge_tune, xgb_edge_final, encoders_edge, tokenizers_edge,
+        bert_small_edge_tune, bert_small_edge_final, distilbert_edge_tune, distilbert_edge_final, privacy,
+        privacy_edge, analysis]
+
+# Stages in run order; depends_on may only name earlier stages.
+#   module/config/args: the command is `python -m <module> --config <config> <args> <unit flags>`
+#   loader:      module:function that loads `config` (the done/units hooks get its result)
+#   dims:        unit dimensions; [] = one unit for the whole stage
+#   units:       optional module:function(cfg, units) -> units actually run (null = every combination of dims)
+#   done:        module:function(cfg, **unit) -> True when the unit's outputs exist
+#   force_flag:  flag that makes the module redo finished work; null = the module always redoes a unit it is given
+#   test_split:  true if the stage reads the TEST split: --force on it needs the stage/its group named explicitly
+#   est_minutes: rough minutes per unit, measured on the RTX A3000 laptop GPU (2026-10-20..28); a map keyed by
+#                encoding when the time differs per encoding
+stages:
+  - name: data
+    module: src.data.pipeline
+    config: configs/data.yaml
+    loader: src.config:load_config
+    args: []
+    dims: [dataset]
+    units: null
+    done: src.data.pipeline:is_done
+    force_flag: null
+    test_split: false
+    depends_on: []
+    est_minutes: 1.5            # ~6 min for all 4 (raw CSV scan + sample + dedupe + split)
+
+  - name: leakage
+    module: src.eval.leakage
+    config: configs/xgb.yaml
+    loader: src.config:load_model_config
+    args: []
+    dims: [dataset]
+    units: null
+    done: src.eval.leakage:is_done
+    force_flag: null
+    test_split: false           # train -> val only
+    depends_on: [data]
+    est_minutes: 6              # ~25 min for all 4 on CPU
+
+  - name: xgb_tune
+    module: src.models.xgb
+    config: configs/xgb.yaml
+    loader: src.config:load_model_config
+    args: [--stage, tune]
+    dims: [dataset, task]
+    units: null
+    done: src.models.xgb:tune_done
+    force_flag: null
+    test_split: false
+    depends_on: [data]
+    est_minutes: 1              # 8-grid on GPU, multiclass ~1 min, binary ~0.2 min
+
+  - name: xgb_final
+    module: src.models.xgb
+    config: configs/xgb.yaml
+    loader: src.config:load_model_config
+    args: [--stage, final]
+    dims: [dataset, task]
+    units: null
+    done: src.models.xgb:final_done
+    force_flag: null
+    test_split: true
+    depends_on: [xgb_tune]
+    est_minutes: 0.5            # 3 seeds
+
+  - name: encoders
+    module: src.encoders.build
+    config: configs/encoders.yaml
+    loader: src.config:load_encoder_config
+    args: []
+    dims: []
+    units: null
+    done: src.encoders.build:is_done
+    force_flag: null
+    test_split: false           # bins fitted on train; length report on train
+    depends_on: [data]
+    est_minutes: 3
+
+  - name: tokenizers
+    module: src.tokenizers.train_bpe
+    config: configs/bert_small.yaml
+    loader: src.config:load_bert_config
+    args: []
+    dims: [encoding, dataset]
+    units: null
+    done: src.tokenizers.train_bpe:is_done
+    force_flag: null
+    test_split: false
+    depends_on: [encoders]
+    est_minutes: 0.5            # ~7 min for all 16
+
+  - name: bert_small_tune
+    module: src.models.bert_small
+    config: configs/bert_small.yaml
+    loader: src.config:load_bert_config
+    args: [--stage, tune]
+    dims: [encoding, dataset, task]
+    units: src.models.text_runs:tune_units    # pilot scope: one unit per encoding
+    done: src.models.text_runs:tune_done
+    force_flag: --force
+    test_split: false
+    depends_on: [tokenizers]
+    est_minutes: {e1_ppfle: 33, e2_ppfle_bins: 35, e3_kv: 16, e4_sentence: 20}   # 3 LRs x 4 epochs
+
+  - name: bert_small_final
+    module: src.models.bert_small
+    config: configs/bert_small.yaml
+    loader: src.config:load_bert_config
+    args: [--stage, final]
+    dims: [encoding, dataset, task]
+    units: src.models.text_runs:final_units   # side runs only where configured (none for small BERT)
+    done: src.models.text_runs:final_seeds_done
+    force_flag: --force
+    test_split: true
+    depends_on: [bert_small_tune]
+    est_minutes: {e1_ppfle: 33, e2_ppfle_bins: 30, e3_kv: 17, e4_sentence: 24}   # 3 seeds incl. test eval
+
+  # DistilBERT (plan §6.3): pretrained WordPiece tokenizer, so no tokenizer stage; E2 needs the encoders' bin edges.
+  - name: distilbert_tune
+    module: src.models.distilbert
+    config: configs/distilbert.yaml
+    loader: src.config:load_distilbert_config
+    args: [--stage, tune]
+    dims: [encoding, dataset, task]
+    units: src.models.text_runs:tune_units    # pilot scope; side-run encodings reuse their lr_from tuning
+    done: src.models.text_runs:tune_done
+    force_flag: --force
+    test_split: false
+    depends_on: [encoders]
+    # 3 LRs x 3 epochs on UNSW + data prep; measured in the full run 2026-10-28..11-01 (sleep excluded). The smoke
+    # run predicted ~half: the laptop GPU sits at its power cap (45-90 W depending on the charger) on long runs.
+    est_minutes: {e1_ppfle: 210, e2_ppfle_bins: 280, e3_kv: 230, e4_sentence: 190}
+
+  - name: distilbert_final
+    module: src.models.distilbert
+    config: configs/distilbert.yaml
+    loader: src.config:load_distilbert_config
+    args: [--stage, final]
+    dims: [encoding, dataset, task]
+    units: src.models.text_runs:final_units   # 8-hex side runs only on UNSW multiclass
+    done: src.models.text_runs:final_seeds_done
+    force_flag: --force
+    test_split: true
+    depends_on: [distilbert_tune]
+    # per unit = all seeds in configs/distilbert.yaml (1 seed: 3 epochs + test eval); multiply when seeds grow.
+    # Measured in the full run 2026-10-28..11-01 (mean per unit, sleep excluded).
+    est_minutes: {e1_ppfle: 90, e2_ppfle_bins: 110, e3_kv: 82, e4_sentence: 99, e1_ppfle_h8: 87, e2_ppfle_bins_h8: 87}
+
+  # ---- Edge-IIoTset (Exp 1 replication + the Edge column of Exp 2), own configs/*_edge.yaml ----
+  # Times: Edge train splits are ~135k rows vs ~94k for NetFlow, so the NetFlow measurements are scaled by ~1.45
+  # (estimates until measured).
+  - name: data_edge
+    module: src.data.pipeline
+    config: configs/data_edge.yaml
+    loader: src.config:load_config
+    args: []
+    dims: [dataset]
+    units: null
+    done: src.data.pipeline:is_done
+    force_flag: null
+    test_split: false
+    depends_on: []
+    est_minutes: 0.5            # measured 2026-11-01: ~20 s per version
+
+  - name: leakage_edge
+    module: src.eval.leakage
+    config: configs/xgb_edge.yaml
+    loader: src.config:load_model_config
+    args: []
+    dims: [dataset]
+    units: null
+    done: src.eval.leakage:is_done
+    force_flag: null
+    test_split: false
+    depends_on: [data_edge]
+    est_minutes: 8
+
+  - name: xgb_edge_tune
+    module: src.models.xgb
+    config: configs/xgb_edge.yaml
+    loader: src.config:load_model_config
+    args: [--stage, tune]
+    dims: [dataset, task]
+    units: null
+    done: src.models.xgb:tune_done
+    force_flag: null
+    test_split: false
+    depends_on: [data_edge]
+    est_minutes: 2
+
+  - name: xgb_edge_final
+    module: src.models.xgb
+    config: configs/xgb_edge.yaml
+    loader: src.config:load_model_config
+    args: [--stage, final]
+    dims: [dataset, task]
+    units: null
+    done: src.models.xgb:final_done
+    force_flag: null
+    test_split: true
+    depends_on: [xgb_edge_tune]
+    est_minutes: 1
+
+  - name: encoders_edge
+    module: src.encoders.build
+    config: configs/encoders_edge.yaml
+    loader: src.config:load_encoder_config
+    args: []
+    dims: []
+    units: null
+    done: src.encoders.build:is_done
+    force_flag: null
+    test_split: false
+    depends_on: [data_edge]
+    est_minutes: 3
+
+  - name: tokenizers_edge
+    module: src.tokenizers.train_bpe
+    config: configs/bert_small_edge.yaml
+    loader: src.config:load_bert_config
+    args: []
+    dims: [encoding, dataset]
+    units: null                 # every encoding x dataset (also unused ones for the "as published" data; cheap)
+    done: src.tokenizers.train_bpe:is_done
+    force_flag: null
+    test_split: false
+    depends_on: [encoders_edge]
+    est_minutes: 0.5
+
+  - name: bert_small_edge_tune
+    module: src.models.bert_small
+    config: configs/bert_small_edge.yaml
+    loader: src.config:load_bert_config
+    args: [--stage, tune]
+    dims: [encoding, dataset, task]
+    units: src.models.text_runs:tune_units
+    done: src.models.text_runs:tune_done
+    force_flag: --force
+    test_split: false
+    depends_on: [tokenizers_edge]
+    est_minutes: {e1_ppfle: 48, e2_ppfle_bins: 51, e3_kv: 23, e4_sentence: 29}
+
+  - name: bert_small_edge_final
+    module: src.models.bert_small
+    config: configs/bert_small_edge.yaml
+    loader: src.config:load_bert_config
+    args: [--stage, final]
+    dims: [encoding, dataset, task]
+    units: src.models.text_runs:final_units   # the "as published" data runs E1 only (dataset_encodings)
+    done: src.models.text_runs:final_seeds_done
+    force_flag: --force
+    test_split: true
+    depends_on: [bert_small_edge_tune]
+    est_minutes: {e1_ppfle: 48, e2_ppfle_bins: 44, e3_kv: 25, e4_sentence: 35}
+
+  # Last on purpose (decided 2026-11-01): the expensive part, can be cut if time runs short.
+  - name: distilbert_edge_tune
+    module: src.models.distilbert
+    config: configs/distilbert_edge.yaml
+    loader: src.config:load_distilbert_config
+    args: [--stage, tune]
+    dims: [encoding, dataset, task]
+    units: src.models.text_runs:tune_units
+    done: src.models.text_runs:tune_done
+    force_flag: --force
+    test_split: false
+    depends_on: [encoders_edge]
+    est_minutes: {e1_ppfle: 300, e2_ppfle_bins: 400, e3_kv: 330, e4_sentence: 275}
+
+  - name: distilbert_edge_final
+    module: src.models.distilbert
+    config: configs/distilbert_edge.yaml
+    loader: src.config:load_distilbert_config
+    args: [--stage, final]
+    dims: [encoding, dataset, task]
+    units: src.models.text_runs:final_units   # edge_iiotset only
+    done: src.models.text_runs:final_seeds_done
+    force_flag: --force
+    test_split: true
+    depends_on: [distilbert_edge_tune]
+    est_minutes: {e1_ppfle: 130, e2_ppfle_bins: 160, e3_kv: 120, e4_sentence: 145}
+
+  # ---- Analysis (plan §7, §11): tables, figures, error analysis, H1-H4 summary from results.csv. CPU only. ----
+  # No depends_on on purpose: it only reads whatever results exist, so it never starts a training stage. "Done" = all
+  # outputs are newer than results.csv and run_details/, so it reruns by itself when new results arrive (e.g. Edge).
+  - name: analysis
+    module: src.eval.analysis
+    config: configs/analysis.yaml
+    loader: src.config:load_analysis_config
+    args: []
+    dims: []
+    units: null
+    done: src.eval.analysis:is_done
+    force_flag: null
+    test_split: false           # reads finished test results, never the test split itself
+    depends_on: []
+    est_minutes: 0.5            # measured 2026-11-01: ~20 s
+
+  # ---- Experiment 4 (plan §7.2): dictionary attack on PPFLE tokens of each test split. CPU only. ----
+  - name: privacy
+    module: src.eval.privacy
+    config: configs/privacy.yaml
+    loader: src.config:load_privacy_config
+    args: []
+    dims: [dataset]
+    units: null
+    done: src.eval.privacy:is_done
+    force_flag: null
+    test_split: true            # reads the test split's features (no labels, no model)
+    depends_on: [encoders]      # E2 bin edges
+    est_minutes: 0.6            # measured 2026-11-01: ~35 s per dataset (E1 brute force ~30 s)
+
+  # Exp 4 on Edge-IIoTset (both versions; levels 1-2 only, see configs/privacy_edge.yaml). CPU only.
+  - name: privacy_edge
+    module: src.eval.privacy
+    config: configs/privacy_edge.yaml
+    loader: src.config:load_privacy_config
+    args: []
+    dims: [dataset]
+    units: null
+    done: src.eval.privacy:is_done
+    force_flag: null
+    test_split: true            # reads the test split's features (no labels, no model)
+    depends_on: [encoders_edge]
+    est_minutes: 1
+
+  # Live demo (configs/demo.yaml): demo copies of XGBoost + small BERT on one dataset, saved for the Streamlit app.
+  # Not in `all`; never writes results.csv. Run: uv run ftw demo
+  - name: demo_models
+    module: src.demo.train
+    config: configs/demo.yaml
+    loader: src.config:load_demo_config
+    args: []
+    dims: []
+    units: null
+    done: src.demo.train:is_done
+    force_flag: --force
+    test_split: true            # reports each demo copy's test macro-F1 (no selection on it)
+    depends_on: [xgb_tune, tokenizers, bert_small_tune]
+    est_minutes: 6              # measured 2026-11-02: XGBoost ~0.5 min, small BERT E1 ~4, E3 ~2 (+ loading)

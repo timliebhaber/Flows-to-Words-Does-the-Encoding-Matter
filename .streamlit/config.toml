@@ -1,0 +1,19 @@
+# Streamlit settings for the live demo (src/demo/app.py); read from the repo root.
+[browser]
+gatherUsageStats = false   # no usage statistics sent to Streamlit
+
+[server]
+# No auto-reload on code edits (restart the app instead). The watcher scans every loaded module, and touching
+# transformers' lazy modules makes them import torchvision (not installed): "No module named 'torchvision'" spam.
+fileWatcherType = "none"
+
+[client]
+toolbarMode = "minimal"    # no developer menu for visitors
+
+[theme]                    # light theme in the report's colours (accent = the figures' blue)
+base = "light"
+primaryColor = "#184f95"
+backgroundColor = "#f5f7fb"
+secondaryBackgroundColor = "#e9eef7"
+textColor = "#101828"
+baseRadius = "0.75rem"

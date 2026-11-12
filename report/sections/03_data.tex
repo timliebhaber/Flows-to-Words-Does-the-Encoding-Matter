@@ -1,0 +1,27 @@
+\section{Data}\label{sec:data}
+\paragraph{NetFlow datasets.} We use the v3 release of NF-UNSW-NB15, NF-ToN-IoT, NF-BoT-IoT and NF-CSE-CIC-IDS2018,
+which all share one feature set. We drop \res{cfg.data.columns.leaky.count} identifier columns that would let a model
+memorise hosts or time instead of behaviour: the IP addresses, the source port, the flow timestamps and the DNS query
+id. The destination port is kept. This leaves \res{cfg.data.columns.features.count} features.
+
+From each dataset we draw a stratified sample of \res{cfg.data.sampling.sample_size} flows. Classes with fewer than
+\res{cfg.data.sampling.rare_class_threshold} flows are kept whole. NF-BoT-IoT is almost entirely attack traffic, so it
+keeps all of its benign flows. After the identifier columns are gone, we remove exact duplicates and flows that have
+identical features but different labels. Each sample is then split
+\respercentof{cfg.data.split.train}/\respercentof{cfg.data.split.val}/\respercentof{cfg.data.split.test} into train,
+validation and test sets, stratified by class (sizes in \cref{tab:data}, \cref{app:data}).
+
+\paragraph{Edge-IIoTset.} We use the published ``DNN'' file and drop the same
+\res{cfg.data_edge.columns.leaky.count} columns that the dataset authors drop (addresses, ports, payloads and
+timestamps). This leaves \res{cfg.data_edge.columns.features.count} features. Sampling, deduplication and splitting
+follow the NetFlow procedure.
+
+
+\paragraph{Leakage check.} Before modelling, we train XGBoost on each feature alone (train $\to$ validation) and
+look closely at any feature that separates the classes by itself. In NF-UNSW-NB15, the minimum TTL alone reaches
+binary macro-F1 \res{leakage.nf_unsw_nb15.binary.MIN_TTL}, and the maximum TTL reaches
+\res{leakage.nf_unsw_nb15.binary.MAX_TTL}. The reason is that all attack traffic comes from one subnet and all benign
+traffic from another, so the TTL and packet-size fingerprints of these machines give the label away. In the
+multiclass task the same feature reaches only \res{leakage.nf_unsw_nb15.multiclass.MIN_TTL}, because all attack
+classes share the same attacker hosts. We keep all features and treat the binary within-dataset results on
+NF-UNSW-NB15 as saturated.

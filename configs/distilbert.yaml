@@ -1,0 +1,89 @@
+# Fine-tuned DistilBERT with its own pretrained WordPiece tokenizer (plan §6.3).
+# Loaded by src/config.py:load_distilbert_config. Tuning/final logic is shared with small BERT (src/models/text_runs.py).
+
+data_config: configs/data.yaml
+encoder_config: configs/encoders.yaml
+
+model_name: distilbert       # `model` column in results.csv
+pretrained: distilbert-base-uncased   # Hugging Face id; weights download once into the HF cache (~270 MB)
+
+# Main encodings + the 8-hex variants for the truncation side runs (see side_runs).
+encodings: [e1_ppfle, e2_ppfle_bins, e3_kv, e4_sentence, e1_ppfle_h8, e2_ppfle_bins_h8]
+
+# Same tasks as configs/xgb.yaml and configs/bert_small.yaml (a test checks they stay identical).
+tasks:
+  multiclass:
+    target: class
+    benign: benign_class
+    experiment: exp2
+    cross_dataset: false
+  binary:
+    target: label
+    benign: benign_label_value
+    experiment: exp3
+    cross_dataset: true
+
+# Final runs; tuning uses the first one. Decided 2026-10-28: 1 seed on the laptop (~27-31 h; plan §7.3 allows 1 seed
+# when compute is tight). Decided 2026-11-02 (Daniel): seeds 1-2 run on the Elja cluster (A100), so DistilBERT has 3
+# seeds like XGBoost and small BERT. Finished seed-0 runs are kept (done is checked per seed); the learning rates
+# tuned with seed 0 are reused, and the training settings are unchanged so all three seeds are comparable.
+seeds: [0, 1, 2]
+
+tokenizer:                   # the pretrained WordPiece tokenizer is NOT retrained
+  max_len_cap: 512           # DistilBERT's position limit; E1/E2 (~550-570 WordPieces) are truncated here
+  coverage_percentile: 99    # max_len = min(cap, this percentile of train token lengths), measured on train only
+
+model: {}                    # extra keyword arguments for from_pretrained (none: library defaults, SDPA attention)
+
+training:
+  device: cuda
+  batch_size: 32             # plan §6.3: 32-64; smoke run 2026-10-28: 64 runs out of memory on E1/E3 (6 GB GPU)
+  eval_batch_size: 128
+  grad_accum_steps: 1        # optimizer step every N batches (effective batch = batch_size x N)
+  gradient_checkpointing: false   # trades ~30% speed for activation memory; only if the batch does not fit
+  epochs: 3                  # plan §6.3: 2-3; the best epoch by val macro-F1 is kept
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  grad_clip: 1.0
+  amp_dtype: bfloat16
+  class_weight: none         # same as small BERT
+  deterministic: false       # same as small BERT (2026-10-27)
+
+tuning:
+  lr_grid: [0.00002, 0.00003, 0.00005]   # plan §6.3: ~3e-5, tuned on val (seed = first seed)
+  scope: pilot               # tune each encoding once on `pilot` (val only), like small BERT
+  pilot: {dataset: nf_unsw_nb15, task: multiclass}
+
+# Decided 2026-10-28 ("both, compare"): main E1/E2 runs truncate at 512; the 8-hex variants (nothing truncated)
+# run once on UNSW multiclass with the LR tuned for the matching main encoding, to measure what truncation costs.
+side_runs:
+  e1_ppfle_h8: {lr_from: e1_ppfle, datasets: [nf_unsw_nb15], tasks: [multiclass], seeds: [0]}
+  e2_ppfle_bins_h8: {lr_from: e2_ppfle_bins, datasets: [nf_unsw_nb15], tasks: [multiclass], seeds: [0]}
+
+# Datasets that run only some encodings ({dataset: [encodings]}); datasets not listed run every encoding.
+dataset_encodings: {}
+
+# --stage smoke: short timing runs on a train subsample (never the test split) to size the full budget.
+smoke:
+  encodings: [e1_ppfle, e1_ppfle_h8, e3_kv, e4_sentence]   # e2 ~ e1 length, e2_h8 ~ e1_h8
+  dataset: nf_unsw_nb15
+  task: multiclass
+  train_rows: 2048           # random train rows (seed = first seed) used for timing and for max_len
+  steps: 25                  # timed optimizer steps per batch size
+  warmup_steps: 3            # untimed steps first (CUDA kernels, allocator)
+  batch_sizes: [16, 32, 64]
+  eval_rows: 2048            # random val rows to time inference
+  lr: 0.00003
+
+infer_time_per_rows: 1000    # infer_time_ms = milliseconds per this many test rows
+
+outputs:
+  results_file: results/results.csv
+  run_details_dir: results/run_details
+  tuning_file: results/distilbert_tuning.json
+  smoke_json: results/distilbert_smoke.json
+  smoke_md: results/distilbert_smoke.md
+
+# results.csv columns, in order (plan §9.3); same as configs/xgb.yaml.
+results_columns: [run_id, date, experiment, encoding, model, train_dataset, test_dataset, task, seed,
+                  n_train, max_len, macro_f1, accuracy, attack_recall, fpr, train_time_s, infer_time_ms, notes]

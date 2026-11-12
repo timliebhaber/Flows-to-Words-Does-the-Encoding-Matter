@@ -1,0 +1,30 @@
+# NF-CSE-CIC-IDS2018 v3 (20,115,529 rows). Settings that differ per dataset; global settings are in configs/data.yaml.
+name: NF-CSE-CIC-IDS2018            # display name for stats/report
+raw_file: nf-cse-cic-ids2018_v3.csv # file inside paths.raw_dir
+
+# Raw `Attack` value -> normalized class name. Every raw value must be listed (unknown values raise).
+label_map:
+  Benign: benign
+  Bot: bot
+  # The three web attacks are merged: after dropping IPs/ports/timestamps their flows largely share
+  # identical feature vectors (conflicts), so separate labels erased XSS and most SQL injection rows,
+  # also losing valid attack rows for binary tasks. Decided 2026-10-20.
+  Brute_Force_-Web: web_attack
+  Brute_Force_-XSS: web_attack
+  DDOS_attack-HOIC: ddos_hoic
+  DDOS_attack-LOIC-UDP: ddos_loic_udp
+  DDoS_attacks-LOIC-HTTP: ddos_loic_http
+  DoS_attacks-GoldenEye: dos_goldeneye
+  DoS_attacks-Hulk: dos_hulk
+  DoS_attacks-SlowHTTPTest: dos_slowhttptest
+  DoS_attacks-Slowloris: dos_slowloris
+  FTP-BruteForce: ftp_bruteforce   # with dos_slowhttptest: collapses to 1 feature vector shared by both -> lost in dedupe
+  Infilteration: infiltration     # raw spelling is a typo in the source data
+  SQL_Injection: web_attack
+  SSH-Bruteforce: ssh_bruteforce
+
+# Normalized classes kept whole regardless of size (on top of the rare-class rule).
+keep_all_classes: []
+
+# Raw text value -> replacement in columns.string_features (NetFlow has no text features).
+string_value_map: {}

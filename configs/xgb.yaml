@@ -1,0 +1,68 @@
+# XGBoost baseline (plan §6.1) + single-feature leakage check (plan §4.4).
+# Loaded by src/config.py:load_model_config. Data/columns come from the referenced data config.
+
+data_config: configs/data.yaml   # processed splits, feature list, label columns
+
+model_name: xgboost      # `model` column in results.csv
+encoding: none           # `encoding` column: XGBoost reads the table directly
+
+# Tasks: target column + experiment id written to results.csv.
+# multiclass = Experiment 2 (within dataset); binary = Experiment 3 (trained per dataset, tested on all 4).
+tasks:
+  multiclass:
+    target: class        # key into data config `columns` -> attack_class
+    benign: benign_class # key into data config `columns`: the benign value of the target (for attack recall / FPR)
+    experiment: exp2
+    cross_dataset: false # test only on the training dataset
+    eval_metric: mlogloss
+  binary:
+    target: label        # -> Label (0 benign, 1 attack)
+    benign: benign_label_value
+    experiment: exp3
+    cross_dataset: true  # test on the test split of every dataset (4x4 grid)
+    eval_metric: logloss
+
+seeds: [0, 1, 2]         # final runs (plan §7.3: 3 seeds). Tuning uses the first one.
+
+# Fixed XGBoost parameters for tuning and final runs (passed to xgboost.XGBClassifier).
+params:
+  tree_method: hist
+  device: cuda           # GPU (Daniel: RTX A3000); cpu works everywhere, results may differ very slightly
+  n_jobs: -1             # all CPU cores
+  n_estimators: 1000     # upper bound; early stopping on val picks the actual number
+  early_stopping_rounds: 30
+  subsample: 0.8         # < 1 so different seeds give different models
+  colsample_bytree: 0.8
+
+# Grid searched on the VALIDATION split, selected by val macro-F1, per dataset x task.
+tuning:
+  grid:
+    max_depth: [6, 10]
+    learning_rate: [0.1, 0.3]
+    class_weight: [none, balanced]   # balanced = sklearn compute_sample_weight("balanced")
+
+leakage:
+  eval_split: val        # never the test split
+  flag_threshold: 0.99   # single-feature macro-F1 above this -> investigate (plan §4.4)
+  seed: 0
+  params:                # light fixed model per feature, no tuning, no early stopping
+    tree_method: hist
+    device: cpu
+    n_jobs: -1
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.3
+  class_weight: none
+
+infer_time_per_rows: 1000   # infer_time_ms in results.csv = milliseconds per this many test rows
+
+outputs:
+  results_file: results/results.csv
+  run_details_dir: results/run_details    # per-run JSON (per-class F1, confusion matrix, params); not "runs/" (gitignored)
+  tuning_file: results/xgb_tuning.json    # full grid scores + chosen params (read by --stage final)
+  leakage_json: results/leakage_check.json
+  leakage_md: results/leakage_check.md
+
+# results.csv columns, in order (plan §9.3).
+results_columns: [run_id, date, experiment, encoding, model, train_dataset, test_dataset, task, seed,
+                  n_train, max_len, macro_f1, accuracy, attack_recall, fpr, train_time_s, infer_time_ms, notes]

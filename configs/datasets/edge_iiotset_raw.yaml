@@ -1,0 +1,29 @@
+# Edge-IIoTset exactly as published (placeholder spelling NOT fixed): only for the "as published" replication run.
+# Settings that differ per dataset; global settings are in configs/data_edge.yaml.
+name: Edge-IIoTset (as published)
+raw_file: DNN-EdgeIIoT-dataset.csv   # data/raw/; from Kaggle "Edge-IIoTset Cyber Security Dataset of IoT & IIoT",
+                                     # folder "Selected dataset for ML and DL"
+
+# Raw Attack_type value -> normalized class name. Every raw value must be listed (unknown values raise).
+label_map:
+  Normal: benign
+  Backdoor: backdoor
+  DDoS_HTTP: ddos_http
+  DDoS_ICMP: ddos_icmp
+  DDoS_TCP: ddos_tcp
+  DDoS_UDP: ddos_udp
+  Fingerprinting: fingerprinting
+  MITM: mitm
+  Password: password
+  Port_Scanning: port_scanning
+  Ransomware: ransomware
+  SQL_injection: sql_injection
+  Uploading: uploading
+  Vulnerability_scanner: vulnerability_scanner
+  XSS: xss
+
+keep_all_classes: []
+
+# Nothing rewritten: "0" and "0.0" stay different values, so the label leak is kept (Decided 2026-11-01: measure
+# how much it inflates the published result; see configs/datasets/edge_iiotset.yaml).
+string_value_map: {}

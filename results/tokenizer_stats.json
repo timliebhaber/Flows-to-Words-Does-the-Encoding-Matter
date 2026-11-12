@@ -1,0 +1,178 @@
+[
+  {
+    "encoding": "e1_ppfle",
+    "dataset": "nf_unsw_nb15",
+    "vocab_size": 5000,
+    "max_len": 427,
+    "coverage_percentile": 99,
+    "n_train": 94105,
+    "p50": 401,
+    "max": 450,
+    "share_truncated": 0.0097
+  },
+  {
+    "encoding": "e1_ppfle",
+    "dataset": "nf_ton_iot",
+    "vocab_size": 5000,
+    "max_len": 426,
+    "coverage_percentile": 99,
+    "n_train": 69282,
+    "p50": 401,
+    "max": 447,
+    "share_truncated": 0.009
+  },
+  {
+    "encoding": "e1_ppfle",
+    "dataset": "nf_bot_iot",
+    "vocab_size": 5000,
+    "max_len": 426,
+    "coverage_percentile": 99,
+    "n_train": 93553,
+    "p50": 408,
+    "max": 453,
+    "share_truncated": 0.0087
+  },
+  {
+    "encoding": "e1_ppfle",
+    "dataset": "nf_cse_cic_ids2018",
+    "vocab_size": 5000,
+    "max_len": 443,
+    "coverage_percentile": 99,
+    "n_train": 92805,
+    "p50": 404,
+    "max": 458,
+    "share_truncated": 0.008
+  },
+  {
+    "encoding": "e2_ppfle_bins",
+    "dataset": "nf_unsw_nb15",
+    "vocab_size": 5000,
+    "max_len": 406,
+    "coverage_percentile": 99,
+    "n_train": 94105,
+    "p50": 381,
+    "max": 424,
+    "share_truncated": 0.0084
+  },
+  {
+    "encoding": "e2_ppfle_bins",
+    "dataset": "nf_ton_iot",
+    "vocab_size": 5000,
+    "max_len": 417,
+    "coverage_percentile": 99,
+    "n_train": 69282,
+    "p50": 393,
+    "max": 427,
+    "share_truncated": 0.0025
+  },
+  {
+    "encoding": "e2_ppfle_bins",
+    "dataset": "nf_bot_iot",
+    "vocab_size": 5000,
+    "max_len": 413,
+    "coverage_percentile": 99,
+    "n_train": 93553,
+    "p50": 393,
+    "max": 418,
+    "share_truncated": 0.009
+  },
+  {
+    "encoding": "e2_ppfle_bins",
+    "dataset": "nf_cse_cic_ids2018",
+    "vocab_size": 4580,
+    "max_len": 412,
+    "coverage_percentile": 99,
+    "n_train": 92805,
+    "p50": 391,
+    "max": 427,
+    "share_truncated": 0.0092
+  },
+  {
+    "encoding": "e3_kv",
+    "dataset": "nf_unsw_nb15",
+    "vocab_size": 5000,
+    "max_len": 226,
+    "coverage_percentile": 99,
+    "n_train": 94105,
+    "p50": 220,
+    "max": 235,
+    "share_truncated": 0.0079
+  },
+  {
+    "encoding": "e3_kv",
+    "dataset": "nf_ton_iot",
+    "vocab_size": 5000,
+    "max_len": 222,
+    "coverage_percentile": 99,
+    "n_train": 69282,
+    "p50": 219,
+    "max": 231,
+    "share_truncated": 0.0066
+  },
+  {
+    "encoding": "e3_kv",
+    "dataset": "nf_bot_iot",
+    "vocab_size": 5000,
+    "max_len": 227,
+    "coverage_percentile": 99,
+    "n_train": 93553,
+    "p50": 222,
+    "max": 235,
+    "share_truncated": 0.0059
+  },
+  {
+    "encoding": "e3_kv",
+    "dataset": "nf_cse_cic_ids2018",
+    "vocab_size": 5000,
+    "max_len": 228,
+    "coverage_percentile": 99,
+    "n_train": 92805,
+    "p50": 220,
+    "max": 235,
+    "share_truncated": 0.0026
+  },
+  {
+    "encoding": "e4_sentence",
+    "dataset": "nf_unsw_nb15",
+    "vocab_size": 5000,
+    "max_len": 274,
+    "coverage_percentile": 99,
+    "n_train": 94105,
+    "p50": 267,
+    "max": 284,
+    "share_truncated": 0.0082
+  },
+  {
+    "encoding": "e4_sentence",
+    "dataset": "nf_ton_iot",
+    "vocab_size": 5000,
+    "max_len": 269,
+    "coverage_percentile": 99,
+    "n_train": 69282,
+    "p50": 265,
+    "max": 277,
+    "share_truncated": 0.0086
+  },
+  {
+    "encoding": "e4_sentence",
+    "dataset": "nf_bot_iot",
+    "vocab_size": 5000,
+    "max_len": 274,
+    "coverage_percentile": 99,
+    "n_train": 93553,
+    "p50": 268,
+    "max": 288,
+    "share_truncated": 0.007
+  },
+  {
+    "encoding": "e4_sentence",
+    "dataset": "nf_cse_cic_ids2018",
+    "vocab_size": 5000,
+    "max_len": 275,
+    "coverage_percentile": 99,
+    "n_train": 92805,
+    "p50": 266,
+    "max": 283,
+    "share_truncated": 0.0049
+  }
+]

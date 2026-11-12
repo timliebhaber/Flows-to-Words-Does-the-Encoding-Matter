@@ -1,0 +1,6 @@
+\section*{Reproducibility}
+All code, configuration files and results are available in the project repository
+\url{https://github.com/timliebhaber/Flows-to-Words-Does-the-Encoding-Matter}. Every setting lives in a YAML configuration file and all seeds
+are fixed. Bin edges and tokenizers are fitted on the training split only, and the test split is read once. A single
+command (\texttt{uv run ftw}) reruns the whole pipeline and skips steps that are already finished. All tables, figures
+and numbers in this report are generated from the results file.

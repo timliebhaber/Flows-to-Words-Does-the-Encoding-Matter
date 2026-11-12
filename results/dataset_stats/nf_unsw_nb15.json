@@ -1,0 +1,152 @@
+{
+  "dataset": "nf_unsw_nb15",
+  "name": "NF-UNSW-NB15",
+  "raw_file": "nf-unsw-nb15_v3.csv",
+  "settings": {
+    "sample_size": 200000,
+    "rare_class_threshold": 10000,
+    "keep_all_classes": [],
+    "inf_to_missing": true,
+    "conflict_policy": "drop_all",
+    "min_rows_per_class": 20,
+    "split": {
+      "train": 0.7,
+      "val": 0.15,
+      "test": 0.15
+    },
+    "seeds": {
+      "sampling": 42,
+      "split": 42
+    }
+  },
+  "rows": {
+    "raw": 2365424,
+    "sampled": 200000,
+    "exact_duplicates_removed": 65287,
+    "conflict_rows": 276,
+    "conflict_rows_removed": 276,
+    "after_dedupe": 134437,
+    "small_class_rows_dropped": 0,
+    "final": 134437,
+    "train": 94105,
+    "val": 20166,
+    "test": 20166
+  },
+  "classes_kept_whole": [
+    "analysis",
+    "backdoor",
+    "dos",
+    "shellcode",
+    "worms"
+  ],
+  "small_classes_dropped": {},
+  "classes_lost_in_dedupe": [],
+  "class_counts": {
+    "raw": {
+      "benign": 2237731,
+      "fuzzers": 33816,
+      "exploits": 42748,
+      "backdoor": 4659,
+      "reconnaissance": 17074,
+      "generic": 19651,
+      "dos": 5980,
+      "shellcode": 2381,
+      "analysis": 1226,
+      "worms": 158
+    },
+    "target": {
+      "benign": 176653,
+      "fuzzers": 2669,
+      "exploits": 3375,
+      "reconnaissance": 1348,
+      "generic": 1551,
+      "backdoor": 4659,
+      "dos": 5980,
+      "shellcode": 2381,
+      "analysis": 1226,
+      "worms": 158
+    },
+    "sampled": {
+      "benign": 176653,
+      "dos": 5980,
+      "backdoor": 4659,
+      "exploits": 3375,
+      "fuzzers": 2669,
+      "shellcode": 2381,
+      "generic": 1551,
+      "reconnaissance": 1348,
+      "analysis": 1226,
+      "worms": 158
+    },
+    "after_dedupe": {
+      "benign": 115021,
+      "dos": 5319,
+      "backdoor": 3590,
+      "exploits": 3179,
+      "shellcode": 2309,
+      "fuzzers": 2235,
+      "analysis": 1226,
+      "reconnaissance": 942,
+      "generic": 472,
+      "worms": 144
+    },
+    "train": {
+      "benign": 80514,
+      "dos": 3723,
+      "backdoor": 2513,
+      "exploits": 2225,
+      "shellcode": 1616,
+      "fuzzers": 1565,
+      "analysis": 858,
+      "reconnaissance": 659,
+      "generic": 331,
+      "worms": 101
+    },
+    "val": {
+      "benign": 17254,
+      "dos": 798,
+      "backdoor": 539,
+      "exploits": 477,
+      "shellcode": 346,
+      "fuzzers": 335,
+      "analysis": 184,
+      "reconnaissance": 141,
+      "generic": 70,
+      "worms": 22
+    },
+    "test": {
+      "benign": 17253,
+      "dos": 798,
+      "backdoor": 538,
+      "exploits": 477,
+      "shellcode": 347,
+      "fuzzers": 335,
+      "analysis": 184,
+      "reconnaissance": 142,
+      "generic": 71,
+      "worms": 21
+    }
+  },
+  "binary_counts": {
+    "train": {
+      "0": 80514,
+      "1": 13591
+    },
+    "val": {
+      "0": 17254,
+      "1": 2912
+    },
+    "test": {
+      "0": 17253,
+      "1": 2913
+    }
+  },
+  "na_counts": {
+    "SRC_TO_DST_SECOND_BYTES": 12422,
+    "DST_TO_SRC_SECOND_BYTES": 12422
+  },
+  "inf_counts": {
+    "SRC_TO_DST_SECOND_BYTES": 4608,
+    "DST_TO_SRC_SECOND_BYTES": 12422
+  }
+}

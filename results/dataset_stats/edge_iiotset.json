@@ -1,0 +1,190 @@
+{
+  "dataset": "edge_iiotset",
+  "name": "Edge-IIoTset",
+  "raw_file": "DNN-EdgeIIoT-dataset.csv",
+  "settings": {
+    "sample_size": 200000,
+    "rare_class_threshold": 10000,
+    "keep_all_classes": [],
+    "string_value_map": {
+      "0.0": "0"
+    },
+    "inf_to_missing": true,
+    "conflict_policy": "drop_all",
+    "min_rows_per_class": 20,
+    "split": {
+      "train": 0.7,
+      "val": 0.15,
+      "test": 0.15
+    },
+    "seeds": {
+      "sampling": 42,
+      "split": 42
+    }
+  },
+  "rows": {
+    "raw": 2219201,
+    "sampled": 200000,
+    "exact_duplicates_removed": 6115,
+    "conflict_rows": 819,
+    "conflict_rows_removed": 819,
+    "after_dedupe": 193066,
+    "small_class_rows_dropped": 0,
+    "final": 193066,
+    "train": 135146,
+    "val": 28960,
+    "test": 28960
+  },
+  "classes_kept_whole": [
+    "fingerprinting",
+    "mitm"
+  ],
+  "small_classes_dropped": {},
+  "classes_lost_in_dedupe": [],
+  "class_counts": {
+    "raw": {
+      "benign": 1615643,
+      "mitm": 1214,
+      "uploading": 37634,
+      "ransomware": 10925,
+      "sql_injection": 51203,
+      "ddos_http": 49911,
+      "ddos_tcp": 50062,
+      "password": 50153,
+      "port_scanning": 22564,
+      "vulnerability_scanner": 50110,
+      "backdoor": 24862,
+      "xss": 15915,
+      "fingerprinting": 1001,
+      "ddos_udp": 121568,
+      "ddos_icmp": 116436
+    },
+    "target": {
+      "benign": 144137,
+      "uploading": 3357,
+      "ransomware": 975,
+      "sql_injection": 4568,
+      "ddos_http": 4453,
+      "ddos_tcp": 4466,
+      "password": 4474,
+      "port_scanning": 2013,
+      "vulnerability_scanner": 4470,
+      "backdoor": 2218,
+      "xss": 1420,
+      "ddos_udp": 10846,
+      "ddos_icmp": 10388,
+      "mitm": 1214,
+      "fingerprinting": 1001
+    },
+    "sampled": {
+      "benign": 144137,
+      "ddos_udp": 10846,
+      "ddos_icmp": 10388,
+      "sql_injection": 4568,
+      "password": 4474,
+      "vulnerability_scanner": 4470,
+      "ddos_tcp": 4466,
+      "ddos_http": 4453,
+      "uploading": 3357,
+      "backdoor": 2218,
+      "port_scanning": 2013,
+      "xss": 1420,
+      "mitm": 1214,
+      "fingerprinting": 1001,
+      "ransomware": 975
+    },
+    "after_dedupe": {
+      "benign": 139773,
+      "ddos_udp": 10846,
+      "ddos_icmp": 9825,
+      "sql_injection": 4501,
+      "ddos_tcp": 4466,
+      "vulnerability_scanner": 4458,
+      "password": 4406,
+      "ddos_http": 4269,
+      "uploading": 3248,
+      "backdoor": 2120,
+      "port_scanning": 1773,
+      "xss": 1347,
+      "ransomware": 846,
+      "fingerprinting": 831,
+      "mitm": 357
+    },
+    "train": {
+      "benign": 97841,
+      "ddos_udp": 7592,
+      "ddos_icmp": 6877,
+      "sql_injection": 3151,
+      "ddos_tcp": 3126,
+      "vulnerability_scanner": 3121,
+      "password": 3084,
+      "ddos_http": 2988,
+      "uploading": 2274,
+      "backdoor": 1484,
+      "port_scanning": 1241,
+      "xss": 943,
+      "ransomware": 592,
+      "fingerprinting": 582,
+      "mitm": 250
+    },
+    "val": {
+      "benign": 20966,
+      "ddos_udp": 1627,
+      "ddos_icmp": 1474,
+      "sql_injection": 675,
+      "ddos_tcp": 670,
+      "vulnerability_scanner": 669,
+      "password": 661,
+      "ddos_http": 640,
+      "uploading": 487,
+      "backdoor": 318,
+      "port_scanning": 266,
+      "xss": 202,
+      "ransomware": 127,
+      "fingerprinting": 125,
+      "mitm": 53
+    },
+    "test": {
+      "benign": 20966,
+      "ddos_udp": 1627,
+      "ddos_icmp": 1474,
+      "sql_injection": 675,
+      "ddos_tcp": 670,
+      "vulnerability_scanner": 668,
+      "password": 661,
+      "ddos_http": 641,
+      "uploading": 487,
+      "backdoor": 318,
+      "port_scanning": 266,
+      "xss": 202,
+      "ransomware": 127,
+      "fingerprinting": 124,
+      "mitm": 54
+    }
+  },
+  "binary_counts": {
+    "train": {
+      "0": 97841,
+      "1": 37305
+    },
+    "val": {
+      "0": 20966,
+      "1": 7994
+    },
+    "test": {
+      "0": 20966,
+      "1": 7994
+    }
+  },
+  "na_counts": {},
+  "inf_counts": {},
+  "string_values_mapped": {
+    "http.request.method": 177258,
+    "http.referer": 189657,
+    "http.request.version": 176044,
+    "dns.qry.name.len": 55636,
+    "mqtt.conack.flags": 55863,
+    "mqtt.protoname": 55863,
+    "mqtt.topic": 55863
+  }
+}

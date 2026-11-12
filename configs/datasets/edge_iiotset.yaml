@@ -1,0 +1,30 @@
+# Edge-IIoTset, "DNN" CSV used by SecurityBERT (2,219,201 rows, 15 classes). Main version: placeholder spelling fixed.
+# Settings that differ per dataset; global settings are in configs/data_edge.yaml.
+name: Edge-IIoTset
+raw_file: DNN-EdgeIIoT-dataset.csv   # data/raw/; from Kaggle "Edge-IIoTset Cyber Security Dataset of IoT & IIoT",
+                                     # folder "Selected dataset for ML and DL"
+
+# Raw Attack_type value -> normalized class name. Every raw value must be listed (unknown values raise).
+label_map:
+  Normal: benign
+  Backdoor: backdoor
+  DDoS_HTTP: ddos_http
+  DDoS_ICMP: ddos_icmp
+  DDoS_TCP: ddos_tcp
+  DDoS_UDP: ddos_udp
+  Fingerprinting: fingerprinting
+  MITM: mitm
+  Password: password
+  Port_Scanning: port_scanning
+  Ransomware: ransomware
+  SQL_injection: sql_injection
+  Uploading: uploading
+  Vulnerability_scanner: vulnerability_scanner
+  XSS: xss
+
+keep_all_classes: []
+
+# Raw text value -> replacement in columns.string_features. An empty field is written "0" in some source files and
+# "0.0" in others, which reveals normal vs attack (arXiv 2608.15761; confirmed 2026-11-01). One spelling removes it.
+string_value_map:
+  "0.0": "0"

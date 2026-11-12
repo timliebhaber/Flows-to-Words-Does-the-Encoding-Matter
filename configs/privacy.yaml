@@ -1,0 +1,72 @@
+# Experiment 4 (plan §7.2, RQ4): is PPFLE privacy-preserving? A dictionary attack on the hashed tokens.
+# Loaded by src/config.py:load_privacy_config. Run: uv run python -m src.eval.privacy --config configs/privacy.yaml
+# CPU only, ~2 min for the 4 NetFlow datasets.
+#
+# Attacker model: knows the published scheme (hash algorithm, hash length, `column$value`, NA token, E2's bin labels
+# and bin count; all read from the encoder config below, so they always match the real encoding) and the public
+# NetFlow feature list (column names and whether a column is integer or float, which fixes how a value is spelled:
+# 80 vs 80.0). The attacker never sees the target data. Tokens are taken from each dataset's TEST split (plan §7.2);
+# the attack reads features only, no labels and no model.
+
+encoder_config: configs/encoders.yaml   # hash settings + E2 bins + the data config (datasets, feature list)
+style_from: configs/analysis.yaml       # figure style: that config's `figures` section (colours, sizes, formats)
+
+target_split: test        # tokens to reverse (plan §7.2)
+public_split: train       # level 3: values seen in the OTHER public datasets' splits of this name
+public_datasets: [nf_unsw_nb15, nf_ton_iot, nf_bot_iot, nf_cse_cic_ids2018]   # level 3 dictionary (target excluded)
+dataset_labels: {}        # display names; default = the dataset names in configs/analysis.yaml
+
+# Encodings to attack (names from the encoder config). E3/E4 are plain text and need no attack.
+encodings: [e1_ppfle, e2_ppfle_bins]
+
+# Attack levels, cumulative: each level adds candidates to the ones before it. A config may use a subset, in order.
+levels:
+  - {name: enumerate, label: "L1: enumerate low-cardinality columns"}    # + E2 bin labels and the NA token
+  - {name: bruteforce, label: "L2: + brute-force integers"}
+  - {name: public, label: "L3: + public-data dictionary"}
+
+# L1 (plan §7.2): columns with a small, known value space, and every value they can take.
+#   range: [lo, hi]        every integer lo..hi (spelled as the column's type: 6 or 6.0)
+#   dotted_range: [lo, hi] nDPI application codes `master.sub` with both parts in lo..hi (L7_PROTO, e.g. 7.178)
+#   hex_range: [lo, hi, w] every integer lo..hi as 0x + w lower-case hex digits (e.g. 0x00000000)
+#   values: [...]          a list of strings (public vocabularies, e.g. HTTP methods)
+# A column may combine several kinds; its candidates are the union.
+low_cardinality:
+  L4_DST_PORT: {range: [0, 65535]}
+  PROTOCOL: {range: [0, 255]}
+  L7_PROTO: {dotted_range: [0, 511]}
+  TCP_FLAGS: {range: [0, 255]}
+  CLIENT_TCP_FLAGS: {range: [0, 255]}
+  SERVER_TCP_FLAGS: {range: [0, 255]}
+  MIN_TTL: {range: [0, 255]}
+  MAX_TTL: {range: [0, 255]}
+  ICMP_TYPE: {range: [0, 65535]}      # type * 256 + code
+  ICMP_IPV4_TYPE: {range: [0, 255]}
+  DNS_QUERY_TYPE: {range: [0, 65535]}
+  FTP_COMMAND_RET_CODE: {range: [0, 999]}
+
+level_style:              # figure: one colour + marker per level (dataviz palette slots 1-3, validated all-pairs)
+  colors: ["#2a78d6", "#eb6834", "#1baf7a"]
+  markers: [o, s, D]
+
+# L2: every other numeric column is brute-forced over this range, spelled as its type (0.85 s per million candidates
+# per column). Changed 2026-11-01: float columns are included too (spelled 6.0), since Edge-IIoTset stores integers
+# as floats; text columns are never brute-forced.
+bruteforce_range: [0, 1000000]
+
+outputs:
+  json: results/privacy_attack.json      # per dataset x encoding x level: token/row shares, per-column shares
+  table: results/privacy_attack          # .md (summary + per-column table) and .csv
+  tex: report/generated/privacy_attack.tex   # LaTeX table, inside the report (Overleaf project)
+  figure: privacy_attack                 # stem in the analysis figures dir: per-column heatmap + overall dot plot
+  label: "% of test tokens"              # axis label of the overall dot plot
+
+# Every attack result as a LaTeX macro (\res{privacy....} in the report; keys listed in `md`). See configs/analysis.yaml.
+numbers:
+  tex: report/generated/numbers_privacy.tex
+  md: results/numbers_privacy.md
+  macro: resset
+  prefix: privacy            # keys privacy.<dataset>.<encoding>.<level>...
+  float_decimals: 3
+  percent_decimals: 1
+  max_string_length: 40

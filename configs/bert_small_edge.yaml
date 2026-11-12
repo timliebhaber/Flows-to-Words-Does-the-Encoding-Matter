@@ -1,0 +1,31 @@
+# Small BERT on Edge-IIoTset (Exp 1 replication: E1 + small BERT is the SecurityBERT setup; plus E2-E4 for the
+# Exp 2 table). Loaded by src/config.py:load_bert_config. Starts from configs/bert_small.yaml: model size,
+# tokenizer, training settings, LR grid and seeds are inherited unchanged. Sections below replace the parent's.
+extends: configs/bert_small.yaml
+
+data_config: configs/data_edge.yaml
+encoder_config: configs/encoders_edge.yaml
+
+tasks:                     # multiclass only (15 classes); same block as configs/distilbert_edge.yaml
+  multiclass:
+    target: class
+    benign: benign_class
+    experiment: exp1
+    cross_dataset: false
+
+tuning:
+  lr_grid: [0.0002, 0.0005, 0.001]
+  scope: pilot               # tune each encoding once on the main (fixed) Edge-IIoTset
+  pilot: {dataset: edge_iiotset, task: multiclass}
+
+# Decided 2026-11-01 (Daniel): the "as published" data (placeholder leak kept) runs only the replication
+# setup, E1, with the LR tuned on edge_iiotset.
+dataset_encodings:
+  edge_iiotset_raw: [e1_ppfle]
+
+outputs:
+  results_file: results/results.csv
+  run_details_dir: results/run_details
+  tuning_file: results/bert_small_tuning_edge.json
+  tokenizer_stats_json: results/tokenizer_stats_edge.json
+  tokenizer_stats_md: results/tokenizer_stats_edge.md

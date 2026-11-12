@@ -1,0 +1,15 @@
+\begin{abstract}
+\noindent Language models are increasingly used for network intrusion detection. To use them, each flow record is
+first turned into text. SecurityBERT, for example, hashes every \texttt{column\$value} pair (PPFLE) and reports
+\res{exp1.paper.accuracy} accuracy on Edge-IIoTset. We ask how much this choice of encoding matters. We compare four
+encodings: raw PPFLE, PPFLE on quantile bins, \texttt{key=value} text and a sentence template. Each is paired with a
+small BERT trained from scratch and with a pretrained DistilBERT, and all are compared with a tuned XGBoost on four
+NetFlow datasets and Edge-IIoTset, both within and across datasets. The published Edge-IIoTset result turns out to
+depend on a label leak, because empty fields are spelled differently in normal and attack traffic. Within a dataset,
+XGBoost is as good as or better than every text model. Across datasets, binning the values before hashing transfers
+best for both language models. Finally, a dictionary attack reverses
+\res{privacy.e1_ppfle.public.token_share.min}--\res{privacy.e1_ppfle.public.token_share.max}\,\% of the PPFLE tokens
+in the NetFlow test sets and \res{privacy_edge.edge_iiotset_raw.e1_ppfle.bruteforce.token_share}\,\% on
+Edge-IIoTset, so the encoding does not protect the data.
+% CHECK hyp.H2.verdict, hyp.H3.verdict
+\end{abstract}

@@ -1,0 +1,538 @@
+{
+  "stats": {
+    "nf_unsw_nb15": {
+      "n_train": 94105,
+      "encodings": {
+        "e1_ppfle": {
+          "chars": {
+            "mean": 798.0,
+            "p50": 798,
+            "p99": 798,
+            "max": 798
+          },
+          "words": {
+            "mean": 47.0,
+            "p50": 47,
+            "p99": 47,
+            "max": 47
+          },
+          "wordpiece_tokens": {
+            "mean": 549.3,
+            "p50": 549,
+            "p99": 566,
+            "max": 578
+          },
+          "share_over_model_max": 1.0,
+          "encode_seconds": 9.9
+        },
+        "e2_ppfle_bins": {
+          "chars": {
+            "mean": 798.0,
+            "p50": 798,
+            "p99": 798,
+            "max": 798
+          },
+          "words": {
+            "mean": 47.0,
+            "p50": 47,
+            "p99": 47,
+            "max": 47
+          },
+          "wordpiece_tokens": {
+            "mean": 545.5,
+            "p50": 545,
+            "p99": 564,
+            "max": 575
+          },
+          "share_over_model_max": 1.0,
+          "encode_seconds": 9.5
+        },
+        "e3_kv": {
+          "chars": {
+            "mean": 698.0,
+            "p50": 701,
+            "p99": 726,
+            "max": 740
+          },
+          "words": {
+            "mean": 115.0,
+            "p50": 115,
+            "p99": 115,
+            "max": 115
+          },
+          "wordpiece_tokens": {
+            "mean": 287.8,
+            "p50": 288,
+            "p99": 300,
+            "max": 309
+          },
+          "share_over_model_max": 0.0,
+          "encode_seconds": 5.9
+        },
+        "e4_sentence": {
+          "chars": {
+            "mean": 1230.4,
+            "p50": 1234,
+            "p99": 1261,
+            "max": 1275
+          },
+          "words": {
+            "mean": 225.1,
+            "p50": 225,
+            "p99": 226,
+            "max": 230
+          },
+          "wordpiece_tokens": {
+            "mean": 321.3,
+            "p50": 321,
+            "p99": 334,
+            "max": 343
+          },
+          "share_over_model_max": 0.0,
+          "encode_seconds": 10.3
+        }
+      },
+      "e2_bins_per_column": {
+        "IN_BYTES": 10,
+        "IN_PKTS": 10,
+        "OUT_BYTES": 10,
+        "OUT_PKTS": 10,
+        "FLOW_DURATION_MILLISECONDS": 10,
+        "DURATION_IN": 10,
+        "DURATION_OUT": 10,
+        "MIN_TTL": 3,
+        "MAX_TTL": 3,
+        "LONGEST_FLOW_PKT": 6,
+        "SHORTEST_FLOW_PKT": 3,
+        "MIN_IP_PKT_LEN": 3,
+        "MAX_IP_PKT_LEN": 6,
+        "SRC_TO_DST_SECOND_BYTES": 10,
+        "DST_TO_SRC_SECOND_BYTES": 10,
+        "RETRANSMITTED_IN_BYTES": 10,
+        "RETRANSMITTED_IN_PKTS": 7,
+        "RETRANSMITTED_OUT_BYTES": 10,
+        "RETRANSMITTED_OUT_PKTS": 10,
+        "SRC_TO_DST_AVG_THROUGHPUT": 10,
+        "DST_TO_SRC_AVG_THROUGHPUT": 10,
+        "NUM_PKTS_UP_TO_128_BYTES": 10,
+        "NUM_PKTS_128_TO_256_BYTES": 4,
+        "NUM_PKTS_256_TO_512_BYTES": 4,
+        "NUM_PKTS_512_TO_1024_BYTES": 4,
+        "NUM_PKTS_1024_TO_1514_BYTES": 7,
+        "TCP_WIN_MAX_IN": 10,
+        "TCP_WIN_MAX_OUT": 8,
+        "DNS_TTL_ANSWER": 2,
+        "SRC_TO_DST_IAT_MIN": 2,
+        "SRC_TO_DST_IAT_MAX": 10,
+        "SRC_TO_DST_IAT_AVG": 8,
+        "SRC_TO_DST_IAT_STDDEV": 9,
+        "DST_TO_SRC_IAT_MIN": 2,
+        "DST_TO_SRC_IAT_MAX": 10,
+        "DST_TO_SRC_IAT_AVG": 8,
+        "DST_TO_SRC_IAT_STDDEV": 9
+      }
+    },
+    "nf_ton_iot": {
+      "n_train": 69282,
+      "encodings": {
+        "e1_ppfle": {
+          "chars": {
+            "mean": 798.0,
+            "p50": 798,
+            "p99": 798,
+            "max": 798
+          },
+          "words": {
+            "mean": 47.0,
+            "p50": 47,
+            "p99": 47,
+            "max": 47
+          },
+          "wordpiece_tokens": {
+            "mean": 555.0,
+            "p50": 555,
+            "p99": 567,
+            "max": 579
+          },
+          "share_over_model_max": 1.0,
+          "encode_seconds": 7.2
+        },
+        "e2_ppfle_bins": {
+          "chars": {
+            "mean": 798.0,
+            "p50": 798,
+            "p99": 798,
+            "max": 798
+          },
+          "words": {
+            "mean": 47.0,
+            "p50": 47,
+            "p99": 47,
+            "max": 47
+          },
+          "wordpiece_tokens": {
+            "mean": 551.9,
+            "p50": 552,
+            "p99": 570,
+            "max": 576
+          },
+          "share_over_model_max": 1.0,
+          "encode_seconds": 9.0
+        },
+        "e3_kv": {
+          "chars": {
+            "mean": 665.2,
+            "p50": 661,
+            "p99": 693,
+            "max": 720
+          },
+          "words": {
+            "mean": 115.0,
+            "p50": 115,
+            "p99": 115,
+            "max": 115
+          },
+          "wordpiece_tokens": {
+            "mean": 280.0,
+            "p50": 279,
+            "p99": 288,
+            "max": 300
+          },
+          "share_over_model_max": 0.0,
+          "encode_seconds": 5.0
+        },
+        "e4_sentence": {
+          "chars": {
+            "mean": 1195.5,
+            "p50": 1191,
+            "p99": 1225,
+            "max": 1252
+          },
+          "words": {
+            "mean": 225.0,
+            "p50": 225,
+            "p99": 226,
+            "max": 226
+          },
+          "wordpiece_tokens": {
+            "mean": 312.4,
+            "p50": 312,
+            "p99": 321,
+            "max": 333
+          },
+          "share_over_model_max": 0.0,
+          "encode_seconds": 8.0
+        }
+      },
+      "e2_bins_per_column": {
+        "IN_BYTES": 9,
+        "IN_PKTS": 6,
+        "OUT_BYTES": 8,
+        "OUT_PKTS": 6,
+        "FLOW_DURATION_MILLISECONDS": 7,
+        "DURATION_IN": 6,
+        "DURATION_OUT": 5,
+        "MIN_TTL": 3,
+        "MAX_TTL": 3,
+        "LONGEST_FLOW_PKT": 8,
+        "SHORTEST_FLOW_PKT": 6,
+        "MIN_IP_PKT_LEN": 4,
+        "MAX_IP_PKT_LEN": 8,
+        "SRC_TO_DST_SECOND_BYTES": 6,
+        "DST_TO_SRC_SECOND_BYTES": 7,
+        "RETRANSMITTED_IN_BYTES": 2,
+        "RETRANSMITTED_IN_PKTS": 2,
+        "RETRANSMITTED_OUT_BYTES": 2,
+        "RETRANSMITTED_OUT_PKTS": 2,
+        "SRC_TO_DST_AVG_THROUGHPUT": 10,
+        "DST_TO_SRC_AVG_THROUGHPUT": 8,
+        "NUM_PKTS_UP_TO_128_BYTES": 6,
+        "NUM_PKTS_128_TO_256_BYTES": 3,
+        "NUM_PKTS_256_TO_512_BYTES": 4,
+        "NUM_PKTS_512_TO_1024_BYTES": 3,
+        "NUM_PKTS_1024_TO_1514_BYTES": 3,
+        "TCP_WIN_MAX_IN": 8,
+        "TCP_WIN_MAX_OUT": 7,
+        "DNS_TTL_ANSWER": 2,
+        "SRC_TO_DST_IAT_MIN": 3,
+        "SRC_TO_DST_IAT_MAX": 6,
+        "SRC_TO_DST_IAT_AVG": 5,
+        "SRC_TO_DST_IAT_STDDEV": 5,
+        "DST_TO_SRC_IAT_MIN": 3,
+        "DST_TO_SRC_IAT_MAX": 5,
+        "DST_TO_SRC_IAT_AVG": 5,
+        "DST_TO_SRC_IAT_STDDEV": 5
+      }
+    },
+    "nf_bot_iot": {
+      "n_train": 93553,
+      "encodings": {
+        "e1_ppfle": {
+          "chars": {
+            "mean": 798.0,
+            "p50": 798,
+            "p99": 798,
+            "max": 798
+          },
+          "words": {
+            "mean": 47.0,
+            "p50": 47,
+            "p99": 47,
+            "max": 47
+          },
+          "wordpiece_tokens": {
+            "mean": 557.0,
+            "p50": 558,
+            "p99": 571,
+            "max": 580
+          },
+          "share_over_model_max": 1.0,
+          "encode_seconds": 8.1
+        },
+        "e2_ppfle_bins": {
+          "chars": {
+            "mean": 798.0,
+            "p50": 798,
+            "p99": 798,
+            "max": 798
+          },
+          "words": {
+            "mean": 47.0,
+            "p50": 47,
+            "p99": 47,
+            "max": 47
+          },
+          "wordpiece_tokens": {
+            "mean": 551.0,
+            "p50": 551,
+            "p99": 563,
+            "max": 575
+          },
+          "share_over_model_max": 1.0,
+          "encode_seconds": 9.7
+        },
+        "e3_kv": {
+          "chars": {
+            "mean": 669.3,
+            "p50": 667,
+            "p99": 712,
+            "max": 736
+          },
+          "words": {
+            "mean": 115.0,
+            "p50": 115,
+            "p99": 115,
+            "max": 115
+          },
+          "wordpiece_tokens": {
+            "mean": 280.8,
+            "p50": 280,
+            "p99": 297,
+            "max": 312
+          },
+          "share_over_model_max": 0.0,
+          "encode_seconds": 5.8
+        },
+        "e4_sentence": {
+          "chars": {
+            "mean": 1200.5,
+            "p50": 1198,
+            "p99": 1243,
+            "max": 1269
+          },
+          "words": {
+            "mean": 225.0,
+            "p50": 225,
+            "p99": 225,
+            "max": 226
+          },
+          "wordpiece_tokens": {
+            "mean": 312.8,
+            "p50": 312,
+            "p99": 329,
+            "max": 344
+          },
+          "share_over_model_max": 0.0,
+          "encode_seconds": 9.5
+        }
+      },
+      "e2_bins_per_column": {
+        "IN_BYTES": 10,
+        "IN_PKTS": 9,
+        "OUT_BYTES": 4,
+        "OUT_PKTS": 4,
+        "FLOW_DURATION_MILLISECONDS": 10,
+        "DURATION_IN": 10,
+        "DURATION_OUT": 3,
+        "MIN_TTL": 3,
+        "MAX_TTL": 3,
+        "LONGEST_FLOW_PKT": 5,
+        "SHORTEST_FLOW_PKT": 5,
+        "MIN_IP_PKT_LEN": 3,
+        "MAX_IP_PKT_LEN": 5,
+        "SRC_TO_DST_SECOND_BYTES": 5,
+        "DST_TO_SRC_SECOND_BYTES": 10,
+        "RETRANSMITTED_IN_BYTES": 2,
+        "RETRANSMITTED_IN_PKTS": 2,
+        "RETRANSMITTED_OUT_BYTES": 2,
+        "RETRANSMITTED_OUT_PKTS": 2,
+        "SRC_TO_DST_AVG_THROUGHPUT": 10,
+        "DST_TO_SRC_AVG_THROUGHPUT": 5,
+        "NUM_PKTS_UP_TO_128_BYTES": 8,
+        "NUM_PKTS_128_TO_256_BYTES": 6,
+        "NUM_PKTS_256_TO_512_BYTES": 2,
+        "NUM_PKTS_512_TO_1024_BYTES": 2,
+        "NUM_PKTS_1024_TO_1514_BYTES": 2,
+        "TCP_WIN_MAX_IN": 5,
+        "TCP_WIN_MAX_OUT": 3,
+        "DNS_TTL_ANSWER": 2,
+        "SRC_TO_DST_IAT_MIN": 10,
+        "SRC_TO_DST_IAT_MAX": 10,
+        "SRC_TO_DST_IAT_AVG": 10,
+        "SRC_TO_DST_IAT_STDDEV": 10,
+        "DST_TO_SRC_IAT_MIN": 2,
+        "DST_TO_SRC_IAT_MAX": 3,
+        "DST_TO_SRC_IAT_AVG": 3,
+        "DST_TO_SRC_IAT_STDDEV": 2
+      }
+    },
+    "nf_cse_cic_ids2018": {
+      "n_train": 92805,
+      "encodings": {
+        "e1_ppfle": {
+          "chars": {
+            "mean": 798.0,
+            "p50": 798,
+            "p99": 798,
+            "max": 798
+          },
+          "words": {
+            "mean": 47.0,
+            "p50": 47,
+            "p99": 47,
+            "max": 47
+          },
+          "wordpiece_tokens": {
+            "mean": 552.1,
+            "p50": 552,
+            "p99": 571,
+            "max": 582
+          },
+          "share_over_model_max": 1.0,
+          "encode_seconds": 8.0
+        },
+        "e2_ppfle_bins": {
+          "chars": {
+            "mean": 798.0,
+            "p50": 798,
+            "p99": 798,
+            "max": 798
+          },
+          "words": {
+            "mean": 47.0,
+            "p50": 47,
+            "p99": 47,
+            "max": 47
+          },
+          "wordpiece_tokens": {
+            "mean": 549.5,
+            "p50": 549,
+            "p99": 569,
+            "max": 576
+          },
+          "share_over_model_max": 1.0,
+          "encode_seconds": 10.0
+        },
+        "e3_kv": {
+          "chars": {
+            "mean": 682.4,
+            "p50": 684,
+            "p99": 717,
+            "max": 732
+          },
+          "words": {
+            "mean": 115.0,
+            "p50": 115,
+            "p99": 115,
+            "max": 115
+          },
+          "wordpiece_tokens": {
+            "mean": 284.8,
+            "p50": 285,
+            "p99": 299,
+            "max": 309
+          },
+          "share_over_model_max": 0.0,
+          "encode_seconds": 6.0
+        },
+        "e4_sentence": {
+          "chars": {
+            "mean": 1211.3,
+            "p50": 1215,
+            "p99": 1246,
+            "max": 1262
+          },
+          "words": {
+            "mean": 225.0,
+            "p50": 225,
+            "p99": 226,
+            "max": 226
+          },
+          "wordpiece_tokens": {
+            "mean": 317.8,
+            "p50": 318,
+            "p99": 332,
+            "max": 341
+          },
+          "share_over_model_max": 0.0,
+          "encode_seconds": 9.9
+        }
+      },
+      "e2_bins_per_column": {
+        "IN_BYTES": 10,
+        "IN_PKTS": 8,
+        "OUT_BYTES": 10,
+        "OUT_PKTS": 8,
+        "FLOW_DURATION_MILLISECONDS": 10,
+        "DURATION_IN": 9,
+        "DURATION_OUT": 8,
+        "MIN_TTL": 8,
+        "MAX_TTL": 8,
+        "LONGEST_FLOW_PKT": 9,
+        "SHORTEST_FLOW_PKT": 4,
+        "MIN_IP_PKT_LEN": 5,
+        "MAX_IP_PKT_LEN": 9,
+        "SRC_TO_DST_SECOND_BYTES": 5,
+        "DST_TO_SRC_SECOND_BYTES": 5,
+        "RETRANSMITTED_IN_BYTES": 3,
+        "RETRANSMITTED_IN_PKTS": 3,
+        "RETRANSMITTED_OUT_BYTES": 2,
+        "RETRANSMITTED_OUT_PKTS": 2,
+        "SRC_TO_DST_AVG_THROUGHPUT": 10,
+        "DST_TO_SRC_AVG_THROUGHPUT": 10,
+        "NUM_PKTS_UP_TO_128_BYTES": 10,
+        "NUM_PKTS_128_TO_256_BYTES": 5,
+        "NUM_PKTS_256_TO_512_BYTES": 4,
+        "NUM_PKTS_512_TO_1024_BYTES": 3,
+        "NUM_PKTS_1024_TO_1514_BYTES": 4,
+        "TCP_WIN_MAX_IN": 5,
+        "TCP_WIN_MAX_OUT": 7,
+        "DNS_TTL_ANSWER": 4,
+        "SRC_TO_DST_IAT_MIN": 5,
+        "SRC_TO_DST_IAT_MAX": 9,
+        "SRC_TO_DST_IAT_AVG": 9,
+        "SRC_TO_DST_IAT_STDDEV": 8,
+        "DST_TO_SRC_IAT_MIN": 5,
+        "DST_TO_SRC_IAT_MAX": 8,
+        "DST_TO_SRC_IAT_AVG": 8,
+        "DST_TO_SRC_IAT_STDDEV": 7
+      }
+    }
+  },
+  "example": {
+    "e1_ppfle": "e61bda9819b7fb55 4fbfe692dd218a7c 49f8efc3a07a7d29 46928dd8ca3a3f99 99a76dcb3e29cf31 da597cc9203f6df4 3efb85bbd25efb1a ece41bff11d60b21 3240b9e49a543820 fa2e50ac5f639e3f babb86cc04e6de22 c9436fb79e324b5e 0fce18341c7620a7 a677d8c5e90713f3 159235f315eb6a06 4e1436bfde85f863 4e60f8f35b84a080 c79b0fe9c7038678 c42507e04ab177b5 e99d57753466d7f9 edfb8a7e561c9ddf ddc4a676a5c6bdbb dd853150f58fb8d7 40d8c7476b981ae5 3162d2396ae4646c 23e68be05b813884 123e61332fd75c69 a103c799472c6f37 2af31560cf30166e 2190ec7f742ba66d b61c0a6186a2eb2e b1bfc6cb0ae092f4 e567fdf8f8a129f6 28f4fa9e626a91ee 2c04c63049443e03 8f2eb379273697ad 7aa406734b5a835d 04ea7c31c7f0db19 e6c268e56bac6880 96340c122f8019e5 e7627b227d40dda9 2f65357c6b9df5ef cc575117bcb93327 55f76faf34b23036 7c9df53a1aadf693 a9cc91bdad830e39 d0ee9700a62faf82",
+    "e2_ppfle_bins": "e61bda9819b7fb55 4fbfe692dd218a7c 49f8efc3a07a7d29 7fc09090edd30595 02e02bf5a981da22 37d4af979005d2cb 29fde00e2ab18ffe ece41bff11d60b21 3240b9e49a543820 fa2e50ac5f639e3f 34da606c4a74c86b 5b3a60bc305317a0 1126843ce2916164 9431dfbf62c073cb bc06744c91d3de25 09149511bdc07a73 4f59b440d81a8401 ab2e2cdc91bbb270 89c8ca1b62eb9d55 d95be2d6969a5da1 95964370f30502f8 9d838615e48d8ac9 50fe38625c3ce4de 3a139bde5dde1d3a 3409ee068b85489e d22e6e4b3734711c 55bc67693d2255e1 a2fb5630ffa40e02 3d923dda4c5815a9 ecbb5b65846f58fb 0072e46e7842bc4e 987bf1a0456c7349 6e44affa5bf7cfe3 ebfeac9f20975f99 2c04c63049443e03 8f2eb379273697ad 7aa406734b5a835d 1ba5b26588a85134 e6c268e56bac6880 8934f9eaf8c454bd 377b2eeefbcc23e0 87bc1b2745c40a62 5ec02978c799d4e3 6a2a746dffe4f55f 37607b17ba0a0825 37a0c117e2b0b9e6 28a3bbabcde66b15",
+    "e3_kv": "dst port=31992 proto=6 app proto=11.0 in bytes=4704 in pkts=28 out bytes=2976 out pkts=28 tcp flags=27 client flags=27 server flags=27 duration=335 in duration=334 out duration=334 min ttl=31 max ttl=32 longest pkt=984 shortest pkt=52 min ip len=52 max ip len=984 in bytes sec=8.88 out bytes sec=14.04 in retx bytes=1988 in retx pkts=7 out retx bytes=1068 out retx pkts=6 in throughput=112000 out throughput=70857 pkts 0 128=34 pkts 128 256=18 pkts 256 512=2 pkts 512 1024=2 pkts 1024 1514=0 in win max=14480 out win max=14480 icmp type=50176 icmp4 type=196 dns type=0 dns ttl=0 ftp code=0 in iat min=0 in iat max=91 in iat avg=12 in iat std=19 out iat min=0 out iat max=90 out iat avg=12 out iat std=19",
+    "e4_sentence": "A TCP flow with application protocol NFS to destination port 31992 lasted 335 milliseconds. The client sent 28 packets (4704 bytes) over 334 milliseconds, and the server replied with 28 packets (2976 bytes) over 334 milliseconds. Client to server throughput was 112000 bits per second (8.88 bytes per second), and server to client throughput was 70857 bits per second (14.04 bytes per second). Packet sizes ranged from 52 to 984 bytes, and IP packet lengths from 52 to 984 bytes. There were 34 packets up to 128 bytes, 18 from 128 to 256 bytes, 2 from 256 to 512 bytes, 2 from 512 to 1024 bytes, and 0 from 1024 to 1514 bytes. The TTL ranged from 31 to 32. The TCP flags were 27 overall, 27 from the client and 27 from the server, with a maximum TCP window of 14480 from the client and 14480 from the server. The client retransmitted 7 packets (1988 bytes) and the server retransmitted 6 packets (1068 bytes). Time between client packets ranged from 0 to 91 milliseconds with mean 12 and standard deviation 19, and time between server packets ranged from 0 to 90 milliseconds with mean 12 and standard deviation 19. The ICMP type was 50176 (IPv4 type 196), the DNS query type was 0 with answer TTL 0, and the FTP return code was 0."
+  }
+}

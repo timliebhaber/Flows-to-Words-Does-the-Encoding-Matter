@@ -1,0 +1,84 @@
+{
+  "class_names": [
+    "benign",
+    "ddos",
+    "dos",
+    "reconnaissance",
+    "theft"
+  ],
+  "lr": 0.0005,
+  "curve": [
+    {
+      "epoch": 1,
+      "train_loss": 0.66632,
+      "val_macro_f1": 0.73395
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.22531,
+      "val_macro_f1": 0.74834
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.17797,
+      "val_macro_f1": 0.74984
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.1531,
+      "val_macro_f1": 0.91851
+    }
+  ],
+  "best_epoch": 4,
+  "n_params": 1505285,
+  "max_len": 426,
+  "n_test": 20048,
+  "macro_f1": 0.914847212308492,
+  "accuracy": 0.9410415003990423,
+  "attack_recall": 0.9902763863515823,
+  "fpr": 0.007794738551477752,
+  "per_class_f1": {
+    "benign": 0.9699952373392602,
+    "ddos": 0.9308336883965346,
+    "dos": 0.9408061977968769,
+    "reconnaissance": 0.935725938009788,
+    "theft": 0.796875
+  },
+  "confusion_matrix": [
+    [
+      3055,
+      1,
+      3,
+      18,
+      2
+    ],
+    [
+      1,
+      6554,
+      609,
+      0,
+      0
+    ],
+    [
+      3,
+      363,
+      7772,
+      0,
+      0
+    ],
+    [
+      158,
+      0,
+      0,
+      1434,
+      8
+    ],
+    [
+      3,
+      0,
+      0,
+      13,
+      51
+    ]
+  ]
+}

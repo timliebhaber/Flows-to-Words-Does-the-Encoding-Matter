@@ -1,0 +1,62 @@
+# Experiment 4 on Edge-IIoTset, the dataset SecurityBERT/PPFLE was published on. Starts from configs/privacy.yaml
+# (same attacker model, splits, encodings, brute-force range, figure style); each section below replaces the
+# parent's section as a whole. Run: uv run python -m src.eval.privacy --config configs/privacy_edge.yaml
+# Both versions are attacked: edge_iiotset (fixed spelling) and edge_iiotset_raw (as published, the paper's data).
+extends: configs/privacy.yaml
+
+encoder_config: configs/encoders_edge.yaml   # Edge-IIoTset columns; same hash scheme as NetFlow
+
+# No independent public dataset with these columns exists (the two versions are the same flows), so there is no
+# level 3: a "dictionary" from the other version would be the target data itself.
+public_datasets: []
+dataset_labels:
+  edge_iiotset: Edge-IIoTset (fixed)
+  edge_iiotset_raw: Edge-IIoTset (as published)
+
+levels:
+  - {name: enumerate, label: "L1: enumerate low-cardinality columns"}    # + E2 bin labels and the NA token
+  - {name: bruteforce, label: "L2: + brute-force integers"}
+
+level_style:
+  colors: ["#2a78d6", "#eb6834"]
+  markers: [o, s]
+
+# L1: columns with a small, known value space. Text columns use public vocabularies (HTTP/MQTT standards), never
+# values read from the data; every text column also gets both empty-field spellings of this dataset ("0", "0.0").
+low_cardinality:
+  http.request.method: {values: ["0", "0.0", GET, POST, PUT, DELETE, HEAD, OPTIONS, TRACE, CONNECT, PATCH]}
+  http.request.version: {values: ["0", "0.0", HTTP/0.9, HTTP/1.0, HTTP/1.1, HTTP/2, HTTP/2.0, HTTP/3]}
+  mqtt.protoname: {values: ["0", "0.0", MQTT, MQIsdp]}          # MQTT 3.1.1+ and 3.1 protocol names
+  mqtt.conack.flags: {values: ["0", "0.0"], hex_range: [0, 255, 8]}   # one flags byte, written 0x%08x
+  http.referer: {values: ["0", "0.0"]}                          # free text: only the empty spellings are guessable
+  mqtt.topic: {values: ["0", "0.0"]}
+  dns.qry.name.len: {values: ["0", "0.0"]}                      # holds host names in the raw file (columns swapped)
+  tcp.flags: {range: [0, 255]}
+  arp.opcode: {range: [0, 65535]}
+  dns.qry.type: {range: [0, 65535]}
+  mqtt.hdrflags: {range: [0, 255]}
+  mqtt.msgtype: {range: [0, 15]}
+  mqtt.conflags: {range: [0, 255]}
+  mqtt.ver: {range: [0, 255]}
+  mbtcp.unit_id: {range: [0, 255]}
+  tcp.connection.fin: {range: [0, 1]}
+  tcp.connection.rst: {range: [0, 1]}
+  tcp.connection.syn: {range: [0, 1]}
+  tcp.connection.synack: {range: [0, 1]}
+  tcp.flags.ack: {range: [0, 1]}
+
+outputs:
+  json: results/privacy_attack_edge.json
+  table: results/privacy_attack_edge
+  tex: report/generated/privacy_attack_edge.tex
+  figure: privacy_attack_edge
+  label: "% of test tokens"
+
+numbers:
+  tex: report/generated/numbers_privacy_edge.tex
+  md: results/numbers_privacy_edge.md
+  macro: resset
+  prefix: privacy_edge       # keys privacy_edge.<dataset>.<encoding>.<level>... (no clash with NetFlow keys)
+  float_decimals: 3
+  percent_decimals: 1
+  max_string_length: 40

@@ -1,0 +1,44 @@
+# Data (raw and processed datasets are too large for git)
+/data/
+*.parquet
+*.csv
+!results/results.csv
+results/results.csv.lock
+results/results.csv.tmp*
+
+# Model artifacts and experiment logs
+/logs/
+checkpoints/
+outputs/
+runs/
+wandb/
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.ckpt
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# Environment and editors
+.env
+.vscode/
+.idea/
+.DS_Store

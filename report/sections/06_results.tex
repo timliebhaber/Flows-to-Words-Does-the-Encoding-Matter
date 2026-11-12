@@ -1,0 +1,157 @@
+\section{Results}\label{sec:results}
+
+\subsection{Experiment 1: replication (RQ1)}
+\begin{table*}[!tbp]
+  \centering
+  \caption{Edge-IIoTset, test set: data as published vs.\ with the placeholder spelling unified (``--'': not run).}
+  \label{tab:exp1}
+  \gentable{exp1_replication}
+\end{table*}
+On the data as published, PPFLE + small BERT reaches
+\res{exp1.bert_small.e1_ppfle.edge_iiotset_raw.multiclass.accuracy} accuracy, against the paper's
+\res{exp1.paper.accuracy}. The number therefore reproduces (RQ1: \res{hyp.RQ1.verdict}).
+% CHECK hyp.RQ1.verdict
+As \cref{sec:leak} shows, however, it only reproduces because of the leak. On the fixed data the same model reaches
+\res{exp1.bert_small.e1_ppfle.edge_iiotset.multiclass.accuracy} accuracy and
+\res{exp1.bert_small.e1_ppfle.edge_iiotset.multiclass.macro_f1} macro-F1. A plain XGBoost does better, with
+\res{exp1.xgboost.none.edge_iiotset.multiclass.accuracy} accuracy and
+\res{exp1.xgboost.none.edge_iiotset.multiclass.macro_f1} macro-F1.
+
+\subsection{Experiment 2: within-dataset benchmark (RQ2, H1, H2)}
+\begin{table*}[!tbp]
+  \centering
+  \caption{Test macro-F1 (multiclass), mean $\pm$ std over \res{seeds.distilbert} seeds.}
+  \label{tab:exp2}
+  \gentable{exp2_within_macro_f1}
+\end{table*}
+\Cref{tab:exp2} shows the within-dataset results (as a chart: \cref{fig:exp2}, \cref{app:more}). XGBoost is as good as or better than every text model on
+every dataset (H2: \res{hyp.H2.verdict}, \res{hyp.H2.held} of \res{hyp.H2.total} datasets). On NF-UNSW-NB15 it leads
+the best text model by \resdiff{exp2.xgboost.none.nf_unsw_nb15.macro_f1}{exp2.distilbert.e3_kv.nf_unsw_nb15.macro_f1}
+macro-F1, and on NF-BoT-IoT by
+\resdiff{exp2.xgboost.none.nf_bot_iot.macro_f1}{exp2.distilbert.e3_kv.nf_bot_iot.macro_f1}, just above our tie
+margin. On NF-ToN-IoT the best
+text model comes within our tie margin. On NF-CSE-CIC-IDS2018, DistilBERT with E3 is even slightly ahead
+(\resdiff{exp2.distilbert.e3_kv.nf_cse_cic_ids2018.macro_f1}{exp2.xgboost.none.nf_cse_cic_ids2018.macro_f1}), but
+that is still a tie.
+
+On Edge-IIoTset (fixed data), XGBoost reaches \res{exp2.xgboost.none.edge_iiotset.macro_f1}. The best small BERT
+(\res{best.edge_iiotset.bert_small.encoding}) reaches \res{best.edge_iiotset.bert_small.value}, and DistilBERT with
+\res{best.edge_iiotset.distilbert.encoding} reaches \res{best.edge_iiotset.distilbert.value}. That is the highest
+value in the column, but its lead over XGBoost
+(\resdiff{best.edge_iiotset.distilbert.value}{exp2.xgboost.none.edge_iiotset.macro_f1}) is within the tie margin.
+% CHECK hyp.H2.verdict and its per-dataset checks in results/analysis_summary.md, best.<d>.method (NF-CSE-CIC-IDS2018
+% and Edge-IIoTset: DistilBERT E3), best.nf_unsw_nb15.distilbert.encoding
+
+For DistilBERT, readable key=value text (E3) is the best encoding on every dataset, with the sentence template (E4)
+usually close behind. For the small BERT, the best encoding changes from dataset to dataset. Raw PPFLE is never the
+best encoding for either model and is usually among the weakest. Its best model is within
+\res{cfg.analysis.hypotheses.well_margin} of the best method on only \res{hyp.H1.held} of \res{hyp.H1.total}
+datasets (H1: \res{hyp.H1.verdict}). Seed variance also matters. On NF-CSE-CIC-IDS2018, the small BERT with E1 varies
+by $\pm$\res{exp2.bert_small.e1_ppfle.nf_cse_cic_ids2018.macro_f1.std} between seeds, which is enough to change the
+order of the encodings.
+% CHECK hyp.H1.verdict; best.<d>.distilbert.encoding = E3 on all five datasets; E1 never ranks first
+
+\paragraph{Error analysis.} Most of the errors come from a few classes (\cref{app:errors}). On NF-UNSW-NB15, the
+\texttt{generic} class is hard for every method. XGBoost reaches a per-class F1 of
+\res{perclass.xgboost.none.nf_unsw_nb15.generic} on it, and the small BERT with E1 only
+\res{perclass.bert_small.e1_ppfle.nf_unsw_nb15.generic}. The rare \texttt{worms} class is found by XGBoost
+(\res{perclass.xgboost.none.nf_unsw_nb15.worms}) and by DistilBERT with E3
+(\res{perclass.distilbert.e3_kv.nf_unsw_nb15.worms}), but the small BERT with E1 misses it
+(\res{perclass.bert_small.e1_ppfle.nf_unsw_nb15.worms}). On NF-CSE-CIC-IDS2018, every method labels most
+\texttt{infiltration} flows as benign (XGBoost:
+\res{confusion.xgboost.none.nf_cse_cic_ids2018.infiltration.benign}\,\%). This suggests that these flows cannot be told
+apart from benign traffic using the NetFlow features. On Edge-IIoTset, no class stays below a per-class F1 of
+\res{cfg.analysis.errors.hard_class_f1} for every method. The strongest methods (XGBoost, DistilBERT with E3 or E4, and the
+small BERT with E4) all make the same mistakes: application-layer attacks that look like benign traffic. XGBoost,
+for example, labels
+\res{confusion.xgboost.none.edge_iiotset.ddos_http.benign}\,\% of \texttt{ddos\_http} flows and
+\res{confusion.xgboost.none.edge_iiotset.uploading.benign}\,\% of \texttt{uploading} flows as benign. With binned
+PPFLE (E2), both language models instead confuse attack classes with each other, for example \texttt{uploading} with
+\texttt{password}, probably because the bins merge values that would separate these attacks.
+% CHECK hard.edge_iiotset and the top mix-ups per method (computed from results/run_details)
+
+\subsection{Experiment 3: cross-dataset transfer (RQ3, H3)}
+\begin{table*}[!tbp]
+  \centering
+  \caption{Mean over the \res{exp3.n_datasets}$\times$\res{exp3.n_datasets} grid: same dataset (diagonal) vs.\
+    transfer (off-diagonal).}
+  \label{tab:exp3}
+  \gentable{exp3_cross}
+\end{table*}
+When a model is trained and tested on the same dataset, every method detects attacks almost perfectly. XGBoost, for
+example, reaches a diagonal macro-F1 of \res{exp3.xgboost.none.diag.macro_f1}. Transfer to another dataset is much
+harder (\cref{tab:exp3}; all pairs: \cref{fig:exp3}, \cref{app:more}). The average off-diagonal macro-F1 of XGBoost is only
+\res{exp3.xgboost.none.off.macro_f1}, and some pairs collapse completely. XGBoost trained on NF-CSE-CIC-IDS2018 and
+tested on NF-BoT-IoT reaches just \res{exp3.xgboost.none.nf_cse_cic_ids2018.nf_bot_iot.macro_f1}.
+
+Binning helps both language models. With E2 instead of E1, the small BERT improves from
+\res{exp3.bert_small.e1_ppfle.off.macro_f1} to \res{exp3.bert_small.e2_ppfle_bins.off.macro_f1}, and DistilBERT from
+\res{exp3.distilbert.e1_ppfle.off.macro_f1} to \res{exp3.distilbert.e2_ppfle_bins.off.macro_f1}. That is the highest
+off-diagonal score of any method. Readable text (E3, E4) helps the small BERT but not DistilBERT (H3:
+\res{hyp.H3.verdict}). For DistilBERT, both readable encodings even
+transfer worse than raw PPFLE (\res{exp3.distilbert.e3_kv.off.macro_f1} and
+\res{exp3.distilbert.e4_sentence.off.macro_f1} against \res{exp3.distilbert.e1_ppfle.off.macro_f1}). DistilBERT with E2 also catches more attacks
+than XGBoost, with an attack recall of \res{exp3.distilbert.e2_ppfle_bins.off.attack_recall} against
+\res{exp3.xgboost.none.off.attack_recall}, at a similar false-positive rate
+(\res{exp3.distilbert.e2_ppfle_bins.off.fpr} against \res{exp3.xgboost.none.off.fpr}; \cref{app:more}).
+% CHECK hyp.H3.verdict and the E2 ranking in exp3_cross
+
+\subsection{Does pretraining help readable encodings? (H4)}
+H4 predicts that DistilBERT beats the small BERT on readable encodings only. The data show gains on readable text,
+for example \resdiff{exp2.distilbert.e3_kv.nf_unsw_nb15.macro_f1}{exp2.bert_small.e3_kv.nf_unsw_nb15.macro_f1}
+macro-F1 for E3 on NF-UNSW-NB15. But they also show gains on hashes, for example
+\resdiff{exp3.distilbert.e2_ppfle_bins.off.macro_f1}{exp3.bert_small.e2_ppfle_bins.off.macro_f1} off-diagonal
+macro-F1 for E2 (H4: \res{hyp.H4.verdict}). So pretraining helps beyond reading English, but not everywhere. On
+Edge-IIoTset both models score the same on hashes, \res{exp2.distilbert.e1_ppfle.edge_iiotset.macro_f1} against
+\res{exp2.bert_small.e1_ppfle.edge_iiotset.macro_f1} for E1 and
+\res{exp2.distilbert.e2_ppfle_bins.edge_iiotset.macro_f1} against
+\res{exp2.bert_small.e2_ppfle_bins.edge_iiotset.macro_f1} for E2, while DistilBERT does gain on readable text. Model
+size is a confounder here (\res{params.distilbert.millions}\,M against \res{params.bert_small.millions}\,M
+parameters). A larger model that starts from pretrained weights may simply fit token statistics better.
+Across datasets the pattern even reverses. There, DistilBERT gains on hashes
+(\res{exp3.distilbert.e1_ppfle.off.macro_f1} against \res{exp3.bert_small.e1_ppfle.off.macro_f1} for E1) but not on
+readable text (\res{exp3.distilbert.e3_kv.off.macro_f1} against \res{exp3.bert_small.e3_kv.off.macro_f1} for E3, and
+\res{exp3.distilbert.e4_sentence.off.macro_f1} against \res{exp3.bert_small.e4_sentence.off.macro_f1} for E4).
+% CHECK hyp.H4.verdict and its cross-dataset checks (E1/E2 gain, E3/E4 no gain)
+
+\subsection{Experiment 4: is PPFLE private? (RQ4)}\label{sec:privacy}
+\begin{table*}[!tbp]
+  \centering
+  \caption{Dictionary attack on the NetFlow test splits: share of tokens and of whole rows recovered (cumulative
+    levels).}
+  \label{tab:privacy}
+  \gentable{privacy_attack}
+\end{table*}
+PPFLE uses an unsalted hash. Anyone who knows the scheme can therefore hash candidate values and compare them with
+the tokens. Our attacker knows the scheme and the public NetFlow feature list (column names and types), but not the
+data. The attack runs in three cumulative steps (\cref{tab:privacy}; \cref{fig:privacy}, \cref{app:privacy}).
+
+First, we try every possible value of the \res{privacy.n_low_cardinality} low-cardinality columns, such as ports,
+protocols, TCP flags, TTLs and application codes. This alone reverses
+\res{privacy.e1_ppfle.enumerate.token_share.min}--\res{privacy.e1_ppfle.enumerate.token_share.max}\,\% of all E1
+tokens. Second, we try every whole number up to \res{privacy.bruteforce.max} for the remaining numeric columns. This
+raises the share to
+\res{privacy.e1_ppfle.bruteforce.token_share.min}--\res{privacy.e1_ppfle.bruteforce.token_share.max}\,\% and already
+recovers many whole rows exactly, for example \res{privacy.nf_cse_cic_ids2018.e1_ppfle.bruteforce.row_share}\,\% of
+the NF-CSE-CIC-IDS2018 test flows. Third, we add a dictionary of the values seen in the other public datasets. Token
+recovery then reaches \res{privacy.e1_ppfle.public.token_share.min}--\res{privacy.e1_ppfle.public.token_share.max}\,\%,
+and full rows reach \res{privacy.nf_cse_cic_ids2018.e1_ppfle.public.row_share}\,\% on NF-CSE-CIC-IDS2018 and
+\res{privacy.nf_ton_iot.e1_ppfle.public.row_share}\,\% on NF-ToN-IoT. The values that resist are fractional
+bytes-per-second rates and very large throughput counters (\cref{fig:privacycols}, \cref{app:privacy}).
+
+E2 is even easier to attack. Every binned column has only \res{cfg.encoders.binning.n_bins} possible tokens, so
+enumeration alone reverses \res{privacy.e2_ppfle_bins.enumerate.token_share.min}\,\% of the tokens. The attacker then
+learns the bin, which is a quantile range, rather than the exact value. We checked every recovered token against the
+true value.
+
+The attack also works on SecurityBERT's own dataset (\cref{tab:privacyedge}, \cref{app:privacy}). There is no independent public dataset
+with the same columns as Edge-IIoTset, so we only use the first two steps. The text columns are guessed from public
+vocabularies (HTTP methods and versions, MQTT protocol names) plus the two empty-field spellings. On the data as
+published, this reverses \res{privacy_edge.edge_iiotset_raw.e1_ppfle.bruteforce.token_share}\,\% of the PPFLE tokens
+and \res{privacy_edge.edge_iiotset_raw.e1_ppfle.bruteforce.row_share}\,\% of whole rows. What stays hidden is mostly
+the TCP sequence and acknowledgement numbers, whose values are larger than our brute-force range. Of the raw
+acknowledgement numbers, for example, only \res{privacy_edge.col.e1_ppfle.bruteforce.tcp.ack_raw}\,\% are recovered.
+
+Deterministic hashing of low-entropy fields is pseudonymisation, not privacy protection. A keyed hash (an HMAC with a
+secret key) would block this dictionary attack. It would still reveal which values are equal, though, and the model
+would still learn from exact values that rarely recur in another network.

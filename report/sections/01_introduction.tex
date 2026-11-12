@@ -1,0 +1,51 @@
+\section{Introduction}\label{sec:intro}
+Network intrusion detection systems (NIDS) look at network flows and decide whether each one is benign or one of
+several attack types. A flow is a single row of summary statistics for one connection. Recent work feeds such rows to
+language models by writing them out as text~\cite{hegselmann2022tabllm,borisov2022great}.
+SecurityBERT~\cite{ferrag2024securitybert} goes one step further. Its Privacy-Preserving Fixed-Length Encoding (PPFLE)
+replaces each \texttt{column\$value} pair with a truncated hash, and a small BERT~\cite{devlin2019bert} is trained on
+the resulting tokens. The paper reports \res{exp1.paper.accuracy} accuracy on the \res{nclasses.edge_iiotset}-class
+Edge-IIoTset~\cite{ferrag2022edge} and claims that the hashes protect the raw values.
+
+Three questions remain open. First, the encoding itself is never tested. Hashing removes both the numeric order and
+any English meaning, and it is unclear whether a readable encoding would do better. Second, the baselines were weak.
+On tabular data, a tuned gradient-boosted tree is the natural competitor. Third, real deployments meet networks they
+were not trained on, and the privacy claim has never been checked. We therefore ask:
+\begin{description}[leftmargin=3.2em, labelwidth=2.6em, font=\bfseries]
+  \item[RQ1] Does the PPFLE + small BERT result reproduce on Edge-IIoTset?
+  \item[RQ2] Within one dataset, how do four encodings compare with each other and with XGBoost?
+  \item[RQ3] When a model is trained on one dataset and tested on another, which encoding generalises best?
+  \item[RQ4] Is PPFLE actually privacy-preserving?
+\end{description}
+We also test four hypotheses:
+\begin{description}[leftmargin=3.2em, labelwidth=2.6em, font=\bfseries, itemsep=0pt]
+  \item[H1] PPFLE does well within a dataset.
+  \item[H2] XGBoost is as good or better within a dataset.
+  \item[H3] Readable or binned encodings transfer better than raw PPFLE.
+  \item[H4] A pretrained model benefits from readable encodings, but not from hashes.
+\end{description}
+
+We make four contributions. We run a controlled benchmark of encodings and language models against XGBoost
+(\cref{sec:results}). We find a label leak in Edge-IIoTset that explains the published accuracy (\cref{sec:leak}). We
+show that a simple dictionary attack reverses most PPFLE tokens (\cref{sec:privacy}). Finally, we discuss when the NLP
+route pays off (\cref{sec:discussion}). The box below gives the short answers.
+
+\begin{findings}[Key findings]
+\begin{description}[leftmargin=3.2em, labelwidth=2.6em, font=\bfseries, itemsep=2pt]
+  \item[RQ1] The published accuracy reproduces, but only because of a label leak. PPFLE + small BERT reaches
+    \res{exp1.bert_small.e1_ppfle.edge_iiotset_raw.multiclass.accuracy} on the data as published (paper:
+    \res{exp1.paper.accuracy}) and \res{exp1.bert_small.e1_ppfle.edge_iiotset.multiclass.accuracy} once the leak is
+    removed.
+  \item[RQ2] XGBoost is as good as or better than every text model on every dataset (H2: \res{hyp.H2.verdict}).
+    Raw PPFLE is never the best encoding (H1: \res{hyp.H1.verdict}).
+  \item[RQ3] Binning before hashing transfers best. For the small BERT, off-diagonal macro-F1 rises from
+    \res{exp3.bert_small.e1_ppfle.off.macro_f1} to \res{exp3.bert_small.e2_ppfle_bins.off.macro_f1}, and DistilBERT
+    with binned PPFLE is the best method overall at \res{exp3.distilbert.e2_ppfle_bins.off.macro_f1} (H3:
+    \res{hyp.H3.verdict}). Within a dataset, pretraining helps on readable text. Across datasets it helps on
+    hashes instead (H4: \res{hyp.H4.verdict}).
+  \item[RQ4] PPFLE is not private. A dictionary attack reverses
+    \res{privacy.e1_ppfle.public.token_share.min}--\res{privacy.e1_ppfle.public.token_share.max}\,\% of the NetFlow
+    test tokens and \res{privacy_edge.edge_iiotset_raw.e1_ppfle.bruteforce.token_share}\,\% on Edge-IIoTset.
+\end{description}
+\end{findings}
+% CHECK hyp.H1-H4 verdicts and the E2 ranking in exp3_cross

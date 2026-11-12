@@ -1,0 +1,72 @@
+\section{Data and pipeline}\label{app:data}
+\Cref{tab:data} gives the size of each dataset after cleaning, and \cref{fig:pipeline} shows the pipeline of
+\cref{sec:data,sec:method}.
+
+\begin{table}[H]
+  \centering
+  \caption{Appendix A. Datasets after cleaning. Duplicates are given as a share of the sample, benign flows as a share of the train split.}
+  \label{tab:data}
+  \resizebox{\linewidth}{!}{%
+  \begin{tabular}{lrrrrrrrr}
+    \toprule
+    Dataset & Raw flows & Sample & Duplicates (\%) & Final & Train & Val & Test & Benign (\%) / classes \\
+    \midrule
+    NF-UNSW-NB15 & \res{data.nf_unsw_nb15.rows.raw} & \res{data.nf_unsw_nb15.rows.sampled}
+      & \respct{data.nf_unsw_nb15.rows.exact_duplicates_removed}{data.nf_unsw_nb15.rows.sampled}
+      & \res{data.nf_unsw_nb15.rows.final} & \res{data.nf_unsw_nb15.rows.train} & \res{data.nf_unsw_nb15.rows.val}
+      & \res{data.nf_unsw_nb15.rows.test}
+      & \respct{data.nf_unsw_nb15.binary_counts.train.0}{data.nf_unsw_nb15.rows.train} / \res{nclasses.nf_unsw_nb15} \\
+    NF-ToN-IoT & \res{data.nf_ton_iot.rows.raw} & \res{data.nf_ton_iot.rows.sampled}
+      & \respct{data.nf_ton_iot.rows.exact_duplicates_removed}{data.nf_ton_iot.rows.sampled}
+      & \res{data.nf_ton_iot.rows.final} & \res{data.nf_ton_iot.rows.train} & \res{data.nf_ton_iot.rows.val}
+      & \res{data.nf_ton_iot.rows.test}
+      & \respct{data.nf_ton_iot.binary_counts.train.0}{data.nf_ton_iot.rows.train} / \res{nclasses.nf_ton_iot} \\
+    NF-BoT-IoT & \res{data.nf_bot_iot.rows.raw} & \res{data.nf_bot_iot.rows.sampled}
+      & \respct{data.nf_bot_iot.rows.exact_duplicates_removed}{data.nf_bot_iot.rows.sampled}
+      & \res{data.nf_bot_iot.rows.final} & \res{data.nf_bot_iot.rows.train} & \res{data.nf_bot_iot.rows.val}
+      & \res{data.nf_bot_iot.rows.test}
+      & \respct{data.nf_bot_iot.binary_counts.train.0}{data.nf_bot_iot.rows.train} / \res{nclasses.nf_bot_iot} \\
+    NF-CSE-CIC-IDS2018 & \res{data.nf_cse_cic_ids2018.rows.raw} & \res{data.nf_cse_cic_ids2018.rows.sampled}
+      & \respct{data.nf_cse_cic_ids2018.rows.exact_duplicates_removed}{data.nf_cse_cic_ids2018.rows.sampled}
+      & \res{data.nf_cse_cic_ids2018.rows.final} & \res{data.nf_cse_cic_ids2018.rows.train}
+      & \res{data.nf_cse_cic_ids2018.rows.val} & \res{data.nf_cse_cic_ids2018.rows.test}
+      & \respct{data.nf_cse_cic_ids2018.binary_counts.train.0}{data.nf_cse_cic_ids2018.rows.train}
+        / \res{nclasses.nf_cse_cic_ids2018} \\
+    Edge-IIoTset & \res{data.edge_iiotset.rows.raw} & \res{data.edge_iiotset.rows.sampled}
+      & \respct{data.edge_iiotset.rows.exact_duplicates_removed}{data.edge_iiotset.rows.sampled}
+      & \res{data.edge_iiotset.rows.final} & \res{data.edge_iiotset.rows.train} & \res{data.edge_iiotset.rows.val}
+      & \res{data.edge_iiotset.rows.test}
+      & \respct{data.edge_iiotset.binary_counts.train.0}{data.edge_iiotset.rows.train} / \res{nclasses.edge_iiotset} \\
+    \bottomrule
+  \end{tabular}}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[node distance=5mm and 7mm,
+      box/.style={draw=accent, fill=accentlight!45, rounded corners=2pt, align=center, font=\small,
+                  minimum height=10mm, text width=27mm},
+      arr/.style={-{Stealth[length=2mm]}, accent, thick}]
+    \node[box] (raw) {Raw flow records};
+    \node[box, right=of raw] (clean) {Drop identifier columns};
+    \node[box, right=of clean] (dedup) {Stratified sample, deduplicate};
+    \node[box, right=of dedup] (split) {Train / validation / test split};
+    \node[box, below=of split] (enc) {Encode as text (E1--E4)};
+    \node[box, left=of enc] (tok) {Tokenizer (BPE or WordPiece)};
+    \node[box, left=of tok] (lm) {Small BERT or DistilBERT};
+    \node[box, left=of lm] (eval) {Test metrics and analysis};
+    \node[box, below=of tok] (xgb) {XGBoost on the cleaned table};
+    \draw[arr] (raw) -- (clean);
+    \draw[arr] (clean) -- (dedup);
+    \draw[arr] (dedup) -- (split);
+    \draw[arr] (split) -- (enc);
+    \draw[arr] (enc) -- (tok);
+    \draw[arr] (tok) -- (lm);
+    \draw[arr] (lm) -- (eval);
+    \draw[arr] (split.east) -- ++(4mm,0) |- (xgb.east);
+    \draw[arr] (xgb.west) -| (eval.south);
+  \end{tikzpicture}
+  \caption{Appendix A. Pipeline. Bin edges and tokenizers are fitted on the training split only, and the test split is read
+    once.}
+  \label{fig:pipeline}
+\end{figure}

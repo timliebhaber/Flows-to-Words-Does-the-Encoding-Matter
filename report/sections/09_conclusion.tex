@@ -1,0 +1,9 @@
+\section{Conclusion}\label{sec:conclusion}
+How a network flow is turned into text does matter, but not in the way the PPFLE paper suggests. The
+\res{exp1.paper.accuracy} accuracy reported for PPFLE on Edge-IIoTset only reproduces because empty fields reveal the
+label. Without the leak, a plain XGBoost does better. Within a dataset, XGBoost matches or beats every combination of
+encoding and language model, and readable text works best for the pretrained model. Across datasets, binning the values before hashing transfers
+best, and a pretrained model benefits from it. Finally, hashing does not protect the data, since a dictionary attack
+reverses most PPFLE tokens. Future work should check the cross-dataset results on more datasets and test keyed or
+learned encodings that offer both transfer and privacy.
+% CHECK hyp.RQ1.verdict, hyp.H2.verdict, hyp.H3.verdict

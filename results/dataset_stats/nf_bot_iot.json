@@ -1,0 +1,116 @@
+{
+  "dataset": "nf_bot_iot",
+  "name": "NF-BoT-IoT",
+  "raw_file": "nf-bot-iot_v3.csv",
+  "settings": {
+    "sample_size": 200000,
+    "rare_class_threshold": 10000,
+    "keep_all_classes": [
+      "benign"
+    ],
+    "inf_to_missing": true,
+    "conflict_policy": "drop_all",
+    "min_rows_per_class": 20,
+    "split": {
+      "train": 0.7,
+      "val": 0.15,
+      "test": 0.15
+    },
+    "seeds": {
+      "sampling": 42,
+      "split": 42
+    }
+  },
+  "rows": {
+    "raw": 16933808,
+    "sampled": 200000,
+    "exact_duplicates_removed": 63400,
+    "conflict_rows": 2952,
+    "conflict_rows_removed": 2952,
+    "after_dedupe": 133648,
+    "small_class_rows_dropped": 0,
+    "final": 133648,
+    "train": 93553,
+    "val": 20047,
+    "test": 20048
+  },
+  "classes_kept_whole": [
+    "benign",
+    "theft"
+  ],
+  "small_classes_dropped": {},
+  "classes_lost_in_dedupe": [],
+  "class_counts": {
+    "raw": {
+      "benign": 51989,
+      "ddos": 7150882,
+      "dos": 8034190,
+      "reconnaissance": 1695132,
+      "theft": 1615
+    },
+    "target": {
+      "ddos": 62017,
+      "dos": 69678,
+      "reconnaissance": 14701,
+      "benign": 51989,
+      "theft": 1615
+    },
+    "sampled": {
+      "dos": 69678,
+      "ddos": 62017,
+      "benign": 51989,
+      "reconnaissance": 14701,
+      "theft": 1615
+    },
+    "after_dedupe": {
+      "dos": 54252,
+      "ddos": 47754,
+      "benign": 20527,
+      "reconnaissance": 10667,
+      "theft": 448
+    },
+    "train": {
+      "dos": 37976,
+      "ddos": 33427,
+      "benign": 14369,
+      "reconnaissance": 7467,
+      "theft": 314
+    },
+    "val": {
+      "dos": 8138,
+      "ddos": 7163,
+      "benign": 3079,
+      "reconnaissance": 1600,
+      "theft": 67
+    },
+    "test": {
+      "dos": 8138,
+      "ddos": 7164,
+      "benign": 3079,
+      "reconnaissance": 1600,
+      "theft": 67
+    }
+  },
+  "binary_counts": {
+    "train": {
+      "1": 79184,
+      "0": 14369
+    },
+    "val": {
+      "1": 16968,
+      "0": 3079
+    },
+    "test": {
+      "1": 16969,
+      "0": 3079
+    }
+  },
+  "na_counts": {
+    "SRC_TO_DST_SECOND_BYTES": 43736,
+    "DST_TO_SRC_SECOND_BYTES": 43736
+  },
+  "inf_counts": {
+    "SRC_TO_DST_SECOND_BYTES": 33991,
+    "DST_TO_SRC_SECOND_BYTES": 43736
+  }
+}

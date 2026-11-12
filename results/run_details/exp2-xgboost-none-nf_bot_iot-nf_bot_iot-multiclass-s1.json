@@ -1,0 +1,71 @@
+{
+  "class_names": [
+    "benign",
+    "ddos",
+    "dos",
+    "reconnaissance",
+    "theft"
+  ],
+  "params": {
+    "tree_method": "hist",
+    "device": "cuda",
+    "n_jobs": -1,
+    "n_estimators": 1000,
+    "early_stopping_rounds": 30,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "max_depth": 10,
+    "learning_rate": 0.1
+  },
+  "class_weight": "balanced",
+  "best_iteration": 284,
+  "n_test": 20048,
+  "macro_f1": 0.9887354960266513,
+  "accuracy": 0.9908719074221868,
+  "attack_recall": 0.9975248983440391,
+  "fpr": 0.017213380967846702,
+  "per_class_f1": {
+    "benign": 0.9845453066536521,
+    "ddos": 0.9939250052370644,
+    "dos": 0.9944724235351923,
+    "reconnaissance": 0.9707347447073474,
+    "theft": 1.0
+  },
+  "confusion_matrix": [
+    [
+      3026,
+      0,
+      1,
+      52,
+      0
+    ],
+    [
+      0,
+      7117,
+      47,
+      0,
+      0
+    ],
+    [
+      1,
+      40,
+      8096,
+      1,
+      0
+    ],
+    [
+      41,
+      0,
+      0,
+      1559,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      67
+    ]
+  ]
+}

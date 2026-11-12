@@ -1,0 +1,308 @@
+# Text encoders E1-E4 (plan §5). Loaded by src/config.py:load_encoder_config.
+# Column order always follows `columns.features` in the data config (fixed for every row and dataset).
+
+data_config: configs/data.yaml
+
+# Encoding name (written to results.csv `encoding`) -> implementation in src/encoders/.
+# An entry may instead be {kind: ..., <section>: {key: value}} to override settings below for that encoding only.
+encodings:
+  e1_ppfle: ppfle
+  e2_ppfle_bins: ppfle_binned
+  e3_kv: kv_text
+  e4_sentence: sentence
+  # DistilBERT side runs only (decided 2026-10-28, "both, compare"): E1/E2 exceed its 512-token limit, so main
+  # runs truncate; these 8-hex variants (~300 WordPieces, nothing cut) measure what truncation costs.
+  # E2 bin edges are per dataset, so e2_ppfle_bins_h8 uses the same bins as e2_ppfle_bins.
+  e1_ppfle_h8: {kind: ppfle, hash: {length: 8}}
+  e2_ppfle_bins_h8: {kind: ppfle_binned, hash: {length: 8}}
+
+format:
+  separator: "$"        # PPFLE: hash input is <column><separator><value> (as in the paper)
+  token_joiner: " "     # joins per-feature tokens / pairs / sentences
+  na_token: NA          # missing values, before hashing or printing
+  float_decimals: 2     # E3/E4 only: floats rounded to at most this many decimals (E1/E2 hash values as stored)
+
+hash:
+  algorithm: sha256     # paper does not say which; plan §5 fixes SHA-256
+  length: 16            # hex characters kept
+
+binning:                # E2 only
+  n_bins: 10            # quantile bins per numeric column, fitted on the train split (plan §12: start with 10)
+  bin_prefix: bin       # hash input becomes e.g. IN_BYTES$bin7 (bins numbered from 0)
+  quantile_method: inverted_cdf   # numpy quantile method; edges are values that occur in train (no empty in-between bins)
+  state_dir: data/encoders/e2_bins   # fitted edges per training dataset: <state_dir>/<dataset>.json
+  # Hashed raw like E1 instead of binned: identifiers/codes where "nearby" values mean nothing.
+  categorical_columns:
+    - L4_DST_PORT
+    - PROTOCOL
+    - L7_PROTO
+    - TCP_FLAGS
+    - CLIENT_TCP_FLAGS
+    - SERVER_TCP_FLAGS
+    - ICMP_TYPE
+    - ICMP_IPV4_TYPE
+    - DNS_QUERY_TYPE
+    - FTP_COMMAND_RET_CODE
+
+kv_text:                # E3
+  kv_separator: "="
+  # true -> column names replaced by `aliases`. Decided 2026-10-27: full names gave DistilBERT p99 524-536
+  # WordPiece tokens (> 512); short readable names keep every feature visible. Same text for every model.
+  use_aliases: true
+  aliases:
+    L4_DST_PORT: dst port
+    PROTOCOL: proto
+    L7_PROTO: app proto
+    IN_BYTES: in bytes
+    IN_PKTS: in pkts
+    OUT_BYTES: out bytes
+    OUT_PKTS: out pkts
+    TCP_FLAGS: tcp flags
+    CLIENT_TCP_FLAGS: client flags
+    SERVER_TCP_FLAGS: server flags
+    FLOW_DURATION_MILLISECONDS: duration
+    DURATION_IN: in duration
+    DURATION_OUT: out duration
+    MIN_TTL: min ttl
+    MAX_TTL: max ttl
+    LONGEST_FLOW_PKT: longest pkt
+    SHORTEST_FLOW_PKT: shortest pkt
+    MIN_IP_PKT_LEN: min ip len
+    MAX_IP_PKT_LEN: max ip len
+    SRC_TO_DST_SECOND_BYTES: in bytes sec
+    DST_TO_SRC_SECOND_BYTES: out bytes sec
+    RETRANSMITTED_IN_BYTES: in retx bytes
+    RETRANSMITTED_IN_PKTS: in retx pkts
+    RETRANSMITTED_OUT_BYTES: out retx bytes
+    RETRANSMITTED_OUT_PKTS: out retx pkts
+    SRC_TO_DST_AVG_THROUGHPUT: in throughput
+    DST_TO_SRC_AVG_THROUGHPUT: out throughput
+    NUM_PKTS_UP_TO_128_BYTES: pkts 0 128
+    NUM_PKTS_128_TO_256_BYTES: pkts 128 256
+    NUM_PKTS_256_TO_512_BYTES: pkts 256 512
+    NUM_PKTS_512_TO_1024_BYTES: pkts 512 1024
+    NUM_PKTS_1024_TO_1514_BYTES: pkts 1024 1514
+    TCP_WIN_MAX_IN: in win max
+    TCP_WIN_MAX_OUT: out win max
+    ICMP_TYPE: icmp type
+    ICMP_IPV4_TYPE: icmp4 type
+    DNS_QUERY_TYPE: dns type
+    DNS_TTL_ANSWER: dns ttl
+    FTP_COMMAND_RET_CODE: ftp code
+    SRC_TO_DST_IAT_MIN: in iat min
+    SRC_TO_DST_IAT_MAX: in iat max
+    SRC_TO_DST_IAT_AVG: in iat avg
+    SRC_TO_DST_IAT_STDDEV: in iat std
+    DST_TO_SRC_IAT_MIN: out iat min
+    DST_TO_SRC_IAT_MAX: out iat max
+    DST_TO_SRC_IAT_AVG: out iat avg
+    DST_TO_SRC_IAT_STDDEV: out iat std
+
+sentence:               # E4: all 47 features, each used exactly once (checked by the loader)
+  # Derived placeholders: a readable name looked up from a feature value.
+  derived:
+    PROTOCOL_NAME: {source: PROTOCOL, names: protocol_names, unknown: "IP protocol {value}"}
+    L7_NAME: {source: L7_PROTO, names: l7_names, unknown: "application protocol code {value}"}
+  template:
+    - "A {PROTOCOL_NAME} flow with application protocol {L7_NAME} to destination port {L4_DST_PORT} lasted {FLOW_DURATION_MILLISECONDS} milliseconds."
+    - "The client sent {IN_PKTS} packets ({IN_BYTES} bytes) over {DURATION_IN} milliseconds, and the server replied with {OUT_PKTS} packets ({OUT_BYTES} bytes) over {DURATION_OUT} milliseconds."
+    - "Client to server throughput was {SRC_TO_DST_AVG_THROUGHPUT} bits per second ({SRC_TO_DST_SECOND_BYTES} bytes per second), and server to client throughput was {DST_TO_SRC_AVG_THROUGHPUT} bits per second ({DST_TO_SRC_SECOND_BYTES} bytes per second)."
+    - "Packet sizes ranged from {SHORTEST_FLOW_PKT} to {LONGEST_FLOW_PKT} bytes, and IP packet lengths from {MIN_IP_PKT_LEN} to {MAX_IP_PKT_LEN} bytes."
+    - "There were {NUM_PKTS_UP_TO_128_BYTES} packets up to 128 bytes, {NUM_PKTS_128_TO_256_BYTES} from 128 to 256 bytes, {NUM_PKTS_256_TO_512_BYTES} from 256 to 512 bytes, {NUM_PKTS_512_TO_1024_BYTES} from 512 to 1024 bytes, and {NUM_PKTS_1024_TO_1514_BYTES} from 1024 to 1514 bytes."
+    - "The TTL ranged from {MIN_TTL} to {MAX_TTL}."
+    - "The TCP flags were {TCP_FLAGS} overall, {CLIENT_TCP_FLAGS} from the client and {SERVER_TCP_FLAGS} from the server, with a maximum TCP window of {TCP_WIN_MAX_IN} from the client and {TCP_WIN_MAX_OUT} from the server."
+    - "The client retransmitted {RETRANSMITTED_IN_PKTS} packets ({RETRANSMITTED_IN_BYTES} bytes) and the server retransmitted {RETRANSMITTED_OUT_PKTS} packets ({RETRANSMITTED_OUT_BYTES} bytes)."
+    - "Time between client packets ranged from {SRC_TO_DST_IAT_MIN} to {SRC_TO_DST_IAT_MAX} milliseconds with mean {SRC_TO_DST_IAT_AVG} and standard deviation {SRC_TO_DST_IAT_STDDEV}, and time between server packets ranged from {DST_TO_SRC_IAT_MIN} to {DST_TO_SRC_IAT_MAX} milliseconds with mean {DST_TO_SRC_IAT_AVG} and standard deviation {DST_TO_SRC_IAT_STDDEV}."
+    - "The ICMP type was {ICMP_TYPE} (IPv4 type {ICMP_IPV4_TYPE}), the DNS query type was {DNS_QUERY_TYPE} with answer TTL {DNS_TTL_ANSWER}, and the FTP return code was {FTP_COMMAND_RET_CODE}."
+
+length_report:          # src/encoders/build.py: text lengths on the TRAIN split
+  tokenizer: distilbert-base-uncased   # WordPiece lengths vs DistilBERT's limit
+  model_max_length: 512
+  sample_rows: 20000    # rows per dataset sampled for the tokenizer measurement
+  seed: 0
+  percentiles: [50, 99]
+  example: {dataset: nf_unsw_nb15, row: 0}   # train row shown in all four encodings in the report
+
+outputs:
+  stats_json: results/encoding_stats.json
+  stats_md: results/encoding_stats.md
+
+# IANA IP protocol number -> name, for E4.
+protocol_names:
+  1: ICMP
+  2: IGMP
+  6: TCP
+  17: UDP
+  47: GRE
+  50: ESP
+  58: ICMPv6
+  89: OSPF
+  132: SCTP
+
+# L7_PROTO master code -> application protocol name for E4. Generated from nDPI
+# src/include/ndpi_protocol_ids.h (ntop/nDPI dev, fetched 2026-10-27) for every master code in the
+# processed data; '_' replaced by ' '. Sub-protocol codes (e.g. 10.16) use their master code (10).
+l7_names:
+  0: UNKNOWN
+  1: FTP CONTROL
+  2: MAIL POP
+  3: MAIL SMTP
+  4: MAIL IMAP
+  5: DNS
+  7: HTTP
+  8: MDNS
+  9: NTP
+  10: NETBIOS
+  11: NFS
+  12: SSDP
+  13: BGP
+  14: SNMP
+  15: XDMCP
+  17: SYSLOG
+  18: DHCP
+  19: POSTGRES
+  20: MYSQL
+  23: MAIL POPS
+  24: TAILSCALE
+  27: COAP
+  28: VMWARE
+  29: MAIL SMTPS
+  30: DTLS
+  32: BFCP
+  36: EDONKEY
+  37: BITTORRENT
+  40: MEMCACHED
+  41: SMBV23
+  44: MODBUS
+  50: RTSP
+  51: MAIL IMAPS
+  53: CPHA
+  60: MONGODB
+  64: VXLAN
+  65: IRC
+  72: HART IP
+  74: STEAM
+  77: TELNET
+  78: STUN
+  79: IPSEC
+  80: IP GRE
+  81: IP ICMP
+  82: IP IGMP
+  83: IP EGP
+  84: IP SCTP
+  85: IP OSPF
+  86: IP IP IN IP
+  87: RTP
+  88: RDP
+  89: VNC
+  91: TLS
+  92: SSH
+  93: USENET
+  95: IAX
+  96: TFTP
+  97: AFP
+  100: SIP
+  102: IP ICMPV6
+  103: DHCPV6
+  111: KERBEROS
+  112: LDAP
+  114: MSSQL TDS
+  115: PPTP
+  121: DROPBOX
+  128: NETFLOW
+  131: HTTP PROXY
+  132: CITRIX
+  138: CHECKMK
+  139: AJP
+  144: VIBER
+  146: RADIUS
+  148: TEAMVIEWER
+  150: HCL NOTES
+  151: SAP
+  152: GTP
+  153: WSD
+  154: LLMNR
+  155: TOCA BOCA
+  158: H323
+  159: OPENVPN
+  161: CISCOVPN
+  162: TEAMSPEAK
+  164: SKINNY
+  166: RSYNC
+  167: ORACLE
+  168: CORBA
+  170: WHOIS DAS
+  172: SOCKS
+  174: RTMP
+  175: FTP DATA
+  181: MEGACO
+  182: RESP
+  188: QUIC
+  190: EAQ
+  196: DOH DOT
+  204: BJNP
+  206: WIREGUARD
+  209: TINC
+  213: BLIZZARD
+  214: TEREDO
+  216: IMO
+  222: MQTT
+  226: GIT
+  229: SOMEIP
+  236: LISP
+  237: DIAMETER
+  243: TARGUS GETDATA
+  244: DNP3
+  245: IEC60870
+  247: CAPWAP
+  248: ZABBIX
+  251: WEBSOCKET
+  257: GENSHIN IMPACT
+  259: FORTICLIENT
+  260: Z3950
+  264: CASSANDRA
+  265: AMAZON AWS
+  274: ALIBABA
+  278: ETHERNET IP
+  282: HSRP
+  284: GOOGLE CLOUD
+  285: TENCENT
+  297: IP PIM
+  308: TIVOCONNECT
+  312: NATPMP
+  329: MUNIN
+  332: TPLINK SHP
+  333: SOURCE ENGINE
+  334: BACNET
+  335: OICQ
+  343: BITCOIN
+  345: APACHE THRIFT
+  347: SERVICE LOCATION
+  349: HTTP2
+  351: RMCP
+  353: PROTOBUF
+  354: ETHEREUM
+  358: PTPV2
+  359: RTPS
+  360: OPC UA
+  362: FINS
+  365: BECKHOFF ADS
+  367: IEEE C37118
+  370: DCERPC
+  372: HISLIP
+  373: UFTP
+  374: OPENFLOW
+  377: APACHE KAFKA
+  378: NOMACHINE
+  379: IEC62056
+  380: HL7
+  381: CEPH
+  383: ROUGHTIME
+  391: RADMIN
+  393: CIP
+  394: GEARMAN
+  397: C1222
+  400: DLEP
+  401: BFD
+  405: PFCP
+  416: JRMI

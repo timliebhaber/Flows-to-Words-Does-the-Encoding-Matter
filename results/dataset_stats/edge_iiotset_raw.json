@@ -1,0 +1,180 @@
+{
+  "dataset": "edge_iiotset_raw",
+  "name": "Edge-IIoTset (as published)",
+  "raw_file": "DNN-EdgeIIoT-dataset.csv",
+  "settings": {
+    "sample_size": 200000,
+    "rare_class_threshold": 10000,
+    "keep_all_classes": [],
+    "string_value_map": {},
+    "inf_to_missing": true,
+    "conflict_policy": "drop_all",
+    "min_rows_per_class": 20,
+    "split": {
+      "train": 0.7,
+      "val": 0.15,
+      "test": 0.15
+    },
+    "seeds": {
+      "sampling": 42,
+      "split": 42
+    }
+  },
+  "rows": {
+    "raw": 2219201,
+    "sampled": 200000,
+    "exact_duplicates_removed": 6115,
+    "conflict_rows": 59,
+    "conflict_rows_removed": 59,
+    "after_dedupe": 193826,
+    "small_class_rows_dropped": 0,
+    "final": 193826,
+    "train": 135678,
+    "val": 29074,
+    "test": 29074
+  },
+  "classes_kept_whole": [
+    "fingerprinting",
+    "mitm"
+  ],
+  "small_classes_dropped": {},
+  "classes_lost_in_dedupe": [],
+  "class_counts": {
+    "raw": {
+      "benign": 1615643,
+      "mitm": 1214,
+      "uploading": 37634,
+      "ransomware": 10925,
+      "sql_injection": 51203,
+      "ddos_http": 49911,
+      "ddos_tcp": 50062,
+      "password": 50153,
+      "port_scanning": 22564,
+      "vulnerability_scanner": 50110,
+      "backdoor": 24862,
+      "xss": 15915,
+      "fingerprinting": 1001,
+      "ddos_udp": 121568,
+      "ddos_icmp": 116436
+    },
+    "target": {
+      "benign": 144137,
+      "uploading": 3357,
+      "ransomware": 975,
+      "sql_injection": 4568,
+      "ddos_http": 4453,
+      "ddos_tcp": 4466,
+      "password": 4474,
+      "port_scanning": 2013,
+      "vulnerability_scanner": 4470,
+      "backdoor": 2218,
+      "xss": 1420,
+      "ddos_udp": 10846,
+      "ddos_icmp": 10388,
+      "mitm": 1214,
+      "fingerprinting": 1001
+    },
+    "sampled": {
+      "benign": 144137,
+      "ddos_udp": 10846,
+      "ddos_icmp": 10388,
+      "sql_injection": 4568,
+      "password": 4474,
+      "vulnerability_scanner": 4470,
+      "ddos_tcp": 4466,
+      "ddos_http": 4453,
+      "uploading": 3357,
+      "backdoor": 2218,
+      "port_scanning": 2013,
+      "xss": 1420,
+      "mitm": 1214,
+      "fingerprinting": 1001,
+      "ransomware": 975
+    },
+    "after_dedupe": {
+      "benign": 140117,
+      "ddos_udp": 10846,
+      "ddos_icmp": 9825,
+      "sql_injection": 4552,
+      "ddos_tcp": 4466,
+      "vulnerability_scanner": 4462,
+      "password": 4460,
+      "ddos_http": 4439,
+      "uploading": 3330,
+      "backdoor": 2133,
+      "port_scanning": 1773,
+      "xss": 1362,
+      "ransomware": 855,
+      "fingerprinting": 848,
+      "mitm": 358
+    },
+    "train": {
+      "benign": 98082,
+      "ddos_udp": 7592,
+      "ddos_icmp": 6878,
+      "sql_injection": 3186,
+      "ddos_tcp": 3126,
+      "vulnerability_scanner": 3123,
+      "password": 3122,
+      "ddos_http": 3107,
+      "uploading": 2331,
+      "backdoor": 1493,
+      "port_scanning": 1241,
+      "xss": 953,
+      "ransomware": 599,
+      "fingerprinting": 594,
+      "mitm": 251
+    },
+    "val": {
+      "benign": 21017,
+      "ddos_udp": 1627,
+      "ddos_icmp": 1474,
+      "sql_injection": 683,
+      "ddos_tcp": 670,
+      "password": 669,
+      "vulnerability_scanner": 669,
+      "ddos_http": 666,
+      "uploading": 500,
+      "backdoor": 320,
+      "port_scanning": 266,
+      "xss": 205,
+      "ransomware": 128,
+      "fingerprinting": 127,
+      "mitm": 53
+    },
+    "test": {
+      "benign": 21018,
+      "ddos_udp": 1627,
+      "ddos_icmp": 1473,
+      "sql_injection": 683,
+      "ddos_tcp": 670,
+      "vulnerability_scanner": 670,
+      "password": 669,
+      "ddos_http": 666,
+      "uploading": 499,
+      "backdoor": 320,
+      "port_scanning": 266,
+      "xss": 204,
+      "ransomware": 128,
+      "fingerprinting": 127,
+      "mitm": 54
+    }
+  },
+  "binary_counts": {
+    "train": {
+      "0": 98082,
+      "1": 37596
+    },
+    "val": {
+      "0": 21017,
+      "1": 8057
+    },
+    "test": {
+      "0": 21018,
+      "1": 8056
+    }
+  },
+  "na_counts": {},
+  "inf_counts": {},
+  "string_values_mapped": {}
+}

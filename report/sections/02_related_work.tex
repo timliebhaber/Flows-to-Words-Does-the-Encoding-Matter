@@ -1,0 +1,17 @@
+\section{Related work}\label{sec:related}
+\paragraph{Tables as text.} When table rows are written out as text, pretrained language models can classify tabular
+data~\cite{hegselmann2022tabllm} and even generate realistic new rows~\cite{borisov2022great}. These works use
+readable \texttt{column is value} templates. They do not study hashed or binned encodings, and they do not test
+transfer between datasets.
+
+\paragraph{Language models for intrusion detection.} SecurityBERT and PPFLE~\cite{ferrag2024securitybert} were
+evaluated on Edge-IIoTset~\cite{ferrag2022edge} against classical baselines. Edge-IIoTset is a testbed dataset of
+IoT/IIoT traffic with \res{nclasses.edge_iiotset} classes, benign plus several attack types. Large language models
+that only receive a prompt with the flow record stay well below tree models~\cite{flows2words2025}.
+\citet{edgeleak2026} independently found the placeholder-spelling artifact in Edge-IIoTset that we analyse in
+\cref{sec:leak}.
+
+\paragraph{Datasets and baselines.} The NetFlow datasets of \citet{sarhan2021netflow} describe
+several public NIDS datasets with one shared feature set, which makes cross-dataset evaluation possible \citep{uqnids}. We use
+XGBoost~\cite{chen2016xgboost} as the tabular baseline and DistilBERT~\cite{sanh2019distilbert} as the pretrained
+language model. Our small BERT uses byte-level byte-pair encoding~\cite{sennrich2016bpe} as its tokenizer.

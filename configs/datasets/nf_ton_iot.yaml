@@ -1,0 +1,22 @@
+# NF-ToN-IoT v3 (27,520,260 rows). Settings that differ per dataset; global settings are in configs/data.yaml.
+name: NF-ToN-IoT             # display name for stats/report
+raw_file: nf-ton-iot_v3.csv  # file inside paths.raw_dir
+
+# Raw `Attack` value -> normalized class name. Every raw value must be listed (unknown values raise).
+label_map:
+  Benign: benign
+  Backdoor: backdoor
+  ddos: ddos
+  dos: dos
+  injection: injection
+  mitm: mitm
+  password: password
+  ransomware: ransomware
+  scanning: scanning
+  xss: xss
+
+# Normalized classes kept whole regardless of size (on top of the rare-class rule).
+keep_all_classes: []
+
+# Raw text value -> replacement in columns.string_features (NetFlow has no text features).
+string_value_map: {}

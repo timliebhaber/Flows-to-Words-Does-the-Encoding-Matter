@@ -1,0 +1,143 @@
+{
+  "dataset": "nf_ton_iot",
+  "name": "NF-ToN-IoT",
+  "raw_file": "nf-ton-iot_v3.csv",
+  "settings": {
+    "sample_size": 200000,
+    "rare_class_threshold": 10000,
+    "keep_all_classes": [],
+    "inf_to_missing": true,
+    "conflict_policy": "drop_all",
+    "min_rows_per_class": 20,
+    "split": {
+      "train": 0.7,
+      "val": 0.15,
+      "test": 0.15
+    },
+    "seeds": {
+      "sampling": 42,
+      "split": 42
+    }
+  },
+  "rows": {
+    "raw": 27520260,
+    "sampled": 200000,
+    "exact_duplicates_removed": 97592,
+    "conflict_rows": 3433,
+    "conflict_rows_removed": 3433,
+    "after_dedupe": 98975,
+    "small_class_rows_dropped": 0,
+    "final": 98975,
+    "train": 69282,
+    "val": 14846,
+    "test": 14847
+  },
+  "classes_kept_whole": [
+    "mitm",
+    "ransomware"
+  ],
+  "small_classes_dropped": {},
+  "classes_lost_in_dedupe": [],
+  "class_counts": {
+    "raw": {
+      "benign": 16792214,
+      "scanning": 1358977,
+      "dos": 203456,
+      "injection": 381777,
+      "ddos": 4141256,
+      "password": 1594777,
+      "xss": 2834435,
+      "ransomware": 3971,
+      "backdoor": 203384,
+      "mitm": 6013
+    },
+    "target": {
+      "benign": 115985,
+      "scanning": 9387,
+      "dos": 1405,
+      "injection": 2637,
+      "ddos": 28604,
+      "password": 11015,
+      "xss": 19578,
+      "backdoor": 1405,
+      "ransomware": 3971,
+      "mitm": 6013
+    },
+    "sampled": {
+      "benign": 115985,
+      "ddos": 28604,
+      "xss": 19578,
+      "password": 11015,
+      "scanning": 9387,
+      "mitm": 6013,
+      "ransomware": 3971,
+      "injection": 2637,
+      "dos": 1405,
+      "backdoor": 1405
+    },
+    "after_dedupe": {
+      "benign": 57985,
+      "xss": 13526,
+      "password": 7109,
+      "mitm": 4901,
+      "ddos": 4553,
+      "scanning": 3802,
+      "ransomware": 2826,
+      "injection": 2450,
+      "dos": 1090,
+      "backdoor": 733
+    },
+    "train": {
+      "benign": 40589,
+      "xss": 9468,
+      "password": 4976,
+      "mitm": 3431,
+      "ddos": 3187,
+      "scanning": 2662,
+      "ransomware": 1978,
+      "injection": 1715,
+      "dos": 763,
+      "backdoor": 513
+    },
+    "val": {
+      "benign": 8698,
+      "xss": 2029,
+      "password": 1066,
+      "mitm": 735,
+      "ddos": 683,
+      "scanning": 570,
+      "ransomware": 424,
+      "injection": 367,
+      "dos": 164,
+      "backdoor": 110
+    },
+    "test": {
+      "benign": 8698,
+      "xss": 2029,
+      "password": 1067,
+      "mitm": 735,
+      "ddos": 683,
+      "scanning": 570,
+      "ransomware": 424,
+      "injection": 368,
+      "dos": 163,
+      "backdoor": 110
+    }
+  },
+  "binary_counts": {
+    "train": {
+      "0": 40589,
+      "1": 28693
+    },
+    "val": {
+      "0": 8698,
+      "1": 6148
+    },
+    "test": {
+      "0": 8698,
+      "1": 6149
+    }
+  },
+  "na_counts": {},
+  "inf_counts": {}
+}

@@ -1,0 +1,78 @@
+# Small BERT from scratch ("SecurityBERT-style", plan §6.2) + its per-encoding BPE tokenizers.
+# Loaded by src/config.py:load_bert_config.
+
+data_config: configs/data.yaml
+encoder_config: configs/encoders.yaml
+
+model_name: bert_small       # `model` column in results.csv
+encodings: [e1_ppfle, e2_ppfle_bins, e3_kv, e4_sentence]   # names from configs/encoders.yaml
+
+# Same tasks as configs/xgb.yaml (a test checks they stay identical).
+tasks:
+  multiclass:
+    target: class
+    benign: benign_class
+    experiment: exp2
+    cross_dataset: false
+  binary:
+    target: label
+    benign: benign_label_value
+    experiment: exp3
+    cross_dataset: true
+
+seeds: [0, 1, 2]             # final runs (plan §7.3). Tuning uses the first one.
+
+tokenizer:                   # byte-level BPE, one per encoding x training dataset, trained on its train split
+  vocab_size: 5000
+  min_frequency: 2
+  special_tokens: {pad: "[PAD]", unk: "[UNK]", cls: "[CLS]", sep: "[SEP]"}
+  coverage_percentile: 99    # max_len covers this % of train rows (plan §5); longer rows are truncated
+  dir: data/tokenizers       # <dir>/<encoding>/<dataset>/{tokenizer.json, meta.json}
+
+model:                       # plan §6.2
+  num_hidden_layers: 4
+  hidden_size: 128
+  num_attention_heads: 4
+  intermediate_size: 512
+  hidden_dropout_prob: 0.1
+  attention_probs_dropout_prob: 0.1
+
+training:
+  device: cuda
+  batch_size: 128            # plan §6.2
+  grad_accum_steps: 1        # optimizer step every N batches (effective batch = batch_size x N)
+  eval_batch_size: 512
+  epochs: 4                  # plan §6.2: about 4; the best epoch by val macro-F1 is kept
+  warmup_ratio: 0.1          # linear warmup over this share of steps, then linear decay
+  weight_decay: 0.01
+  grad_clip: 1.0
+  amp_dtype: bfloat16        # mixed precision on the GPU (Ampere supports bf16)
+  class_weight: none         # none | balanced (weighted cross-entropy)
+  # false: runs stay seeded but a rerun may differ in the last decimals; true is ~25% slower on this GPU.
+  deterministic: false       # Decided 2026-10-27 (time budget)
+
+tuning:
+  lr_grid: [0.0002, 0.0005, 0.001]   # plan §6.2: ~5e-4, tuned on val (seed = first seed)
+  # full  -> tune every encoding x dataset x task
+  # pilot -> tune each encoding once on `pilot` (val only) and use its best LR for all datasets and tasks.
+  # Decided 2026-10-27: pilot (full tuning measured at ~10-11 h on the laptop GPU vs ~6 h).
+  scope: pilot
+  pilot: {dataset: nf_unsw_nb15, task: multiclass}
+
+# Encodings that run only on some datasets/tasks/seeds, with the LR tuned for `lr_from` (none for small BERT).
+side_runs: {}
+
+# Datasets that run only some encodings ({dataset: [encodings]}); datasets not listed run every encoding.
+dataset_encodings: {}
+
+infer_time_per_rows: 1000    # infer_time_ms = milliseconds per this many test rows
+
+outputs:
+  results_file: results/results.csv
+  run_details_dir: results/run_details
+  tuning_file: results/bert_small_tuning.json
+  tokenizer_stats_json: results/tokenizer_stats.json
+  tokenizer_stats_md: results/tokenizer_stats.md
+
+results_columns: [run_id, date, experiment, encoding, model, train_dataset, test_dataset, task, seed,
+                  n_train, max_len, macro_f1, accuracy, attack_recall, fpr, train_time_s, infer_time_ms, notes]
